@@ -153,6 +153,36 @@
               "Este evento garantiu a estabilidade necessária para aprovar a Constituição de 1976 e realizar as primeiras eleições livres e universais.",
               "Historicamente, representa o triunfo da democracia representativa sobre as utopias revolucionárias de extrema-esquerda e as tentativas de restauração autoritária de direita."
             ]
+          },
+          // --- REINTEGRAÇÃO DOS RECURSOS MULTIMÉDIA ---
+          {
+            title: "Apresentação: Resumo Visual",
+            icon: <Projector size={64} className="text-purple-400" />,
+            paragraphs: [
+              "Navegue pela apresentação de diapositivos abaixo para consolidar a matéria.",
+              "Utilize as setas para alternar entre os slides e clique na imagem para ampliar."
+            ],
+            slides: Array.from({length: 15}, (_, i) => `./slides${i+1}.jpg`)
+          },
+          {
+            title: "Infografia: A Dinâmica da Crise",
+            icon: <Scroll size={64} className="text-green-400" />,
+            paragraphs: [
+              "Analise a infografia seguinte para compreender as movimentações militares no terreno.",
+              "Clique na imagem abaixo para ampliar e explorar os detalhes."
+            ],
+            image: "./infografia.jpg",
+            imageAlt: "Infografia detalhada sobre o 25 de Novembro"
+          },
+          {
+            title: "Recursos Audiovisuais",
+            icon: <Play size={64} className="text-rev-red" />,
+            paragraphs: [
+              "Aprofunde o seu conhecimento com estes registos históricos.",
+              "Veja o vídeo documental e oiça o podcast para uma análise aprofundada dos eventos."
+            ],
+            video: "./crisenovembro1975.mp4",
+            audio: "./crisenovembro1975.mp3"
           }
         ];
 
