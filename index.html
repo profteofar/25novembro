@@ -87,9 +87,9 @@
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useCallback, StrictMode } from 'react';
         import ReactDOM from 'react-dom/client';
-        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon } from 'lucide-react';
+        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon, MessageSquare } from 'lucide-react';
 
-        // --- DADOS DO CONTEÚDO ---
+        // --- DADOS DO CONTEÚDO (ATUALIZADOS COM FONTES) ---
 
         const APP_PHASES = {
           INTRO: 'INTRO',
@@ -97,79 +97,71 @@
           TIMELINE: 'TIMELINE',
           FLASHCARDS: 'FLASHCARDS',
           FORMATIVE: 'FORMATIVE',
+          DEBATE: 'DEBATE',
           QUIZ: 'QUIZ',
           CONCLUSION: 'CONCLUSION',
         };
 
         const LEARNING_CONTENT = [
           {
-            title: "O Verão Quente de 1975",
+            title: "O Contexto Explosivo: O PREC",
             icon: <AlertCircle size={64} className="text-rev-red" />,
             paragraphs: [
-              "O período que antecedeu o 25 de Novembro, conhecido como 'Verão Quente', foi marcado por uma polarização extrema.",
-              "O país vivia num clima de pré-guerra civil. De um lado, a esquerda radical e o PCP procuravam aprofundar a revolução; do outro, moderados e a direita reagiam com violência (atentados do MDLP).",
-              "A autoridade do Estado estava fragmentada, existindo um 'duplo poder' entre o Governo e os militares revolucionários."
+              "O Processo Revolucionário em Curso (PREC) foi o período de extrema instabilidade entre 1974 e 1975. Portugal vivia um clima de 'pré-guerra civil', marcado por greves, ocupações de terras e fábricas, e nacionalizações.",
+              "O Estado estava paralisado por uma estrutura de 'duplo poder': a legitimidade eleitoral da Assembleia Constituinte colidia com a legitimidade revolucionária dos militares do MFA.",
+              "O país era descrito internacionalmente como um 'manicómio em autogestão', com receios nos EUA (Kissinger) de que Portugal se tornasse uma 'Cuba na Europa'."
             ]
           },
           {
-            title: "As Três Fações em Disputa",
+            title: "O Verão Quente de 1975",
+            icon: <Play size={64} className="text-orange-500" />,
+            paragraphs: [
+              "A polarização atingiu o auge no verão de 1975. O país dividiu-se geograficamente e ideologicamente: o Norte conservador e anti-comunista vs. o Sul onde a reforma agrária avançava.",
+              "A violência escalou com assaltos a sedes de partidos de esquerda no Norte e atentados bombistas de grupos como o MDLP.",
+              "O 'Cerco à Assembleia Constituinte' e o assalto à Embaixada de Espanha foram sinais claros da perda de autoridade do Estado."
+            ]
+          },
+          {
+            title: "Três Projetos em Confronto",
             icon: <Users size={64} className="text-rev-gold" />,
             paragraphs: [
-              "Moderados (Grupo dos Nove): Liderados por Melo Antunes e operacionalmente por Ramalho Eanes. Defendiam uma democracia pluralista e a hierarquia militar.",
-              "Esquerda Militar (COPCON): Liderada por Otelo Saraiva de Carvalho. Defendia o 'Poder Popular' e uma democracia direta baseada em conselhos.",
-              "PCP / Gonçalvistas: Setor alinhado com o Partido Comunista. Tinham grande influência no aparelho de estado e sindicatos, mas optaram por não intervir militarmente no dia decisivo."
+              "1. Moderados (Grupo dos Nove): Liderados por Melo Antunes e operacionalmente por Ramalho Eanes. Defendiam uma democracia pluralista tipo ocidental, o primado da lei e a subordinação militar ao poder civil.",
+              "2. Esquerda Militar (COPCON): Liderada por Otelo Saraiva de Carvalho. Defendia o 'Poder Popular', uma democracia direta de base (comissões de moradores/soldados) e rejeitava a democracia parlamentar 'burguesa'.",
+              "3. PCP / Gonçalvistas: Setor próximo de Vasco Gonçalves. Defendia uma 'Vanguarda Revolucionária' e o controlo do aparelho de Estado para avançar para o socialismo, mas optou por um 'recuo tático' no dia 25."
             ]
           },
           {
-            title: "Golpe ou Contragolpe?",
-            icon: <Scale size={64} className="text-blue-400" />,
+            title: "O Desencadeador e a Resposta",
+            icon: <Shield size={64} className="text-blue-400" />,
             paragraphs: [
-              "Esta é a grande questão histórica. Para o PCP e a extrema-esquerda, tratou-se de um 'golpe' de direita para travar a revolução.",
-              "Para os Moderados (PS, PSD, Grupo dos Nove), foi um 'contragolpe' necessário para impedir uma ditadura comunista e restaurar a ordem democrática.",
-              "O consenso historiográfico atual tende a ver uma ação provocada pela esquerda (sublevação dos paraquedistas) que foi aproveitada pelos moderados para executar um plano de neutralização já preparado."
+              "A causa imediata foi a substituição de Otelo pelo moderado Vasco Lourenço no comando da Região Militar de Lisboa. Em resposta, paraquedistas ocuparam a base de Tancos, ativando a crise.",
+              "O Presidente Costa Gomes foi a figura crucial: ao decretar o Estado de Sítio, legalizou a ação dos Moderados e desmobilizou o apoio civil aos radicais.",
+              "Ramalho Eanes executou um plano militar profissional a partir da Amadora, neutralizando os pontos chave sem banho de sangue significativo."
             ]
           },
           {
-            title: "Apresentação: Resumo Visual",
-            icon: <Projector size={64} className="text-purple-400" />,
+            title: "Consequências e Legado",
+            icon: <Award size={64} className="text-green-500" />,
             paragraphs: [
-              "Navegue pela apresentação de diapositivos abaixo para consolidar a matéria.",
-              "Utilize as setas para alternar entre os slides e clique na imagem para ampliar."
-            ],
-            slides: Array.from({length: 15}, (_, i) => `./slides${i+1}.jpg`)
-          },
-          {
-            title: "Infografia: A Dinâmica da Crise",
-            icon: <Scroll size={64} className="text-green-400" />,
-            paragraphs: [
-              "Analise a infografia seguinte para compreender as movimentações militares no terreno.",
-              "Clique na imagem abaixo para ampliar e explorar os detalhes."
-            ],
-            image: "./infografia.jpg",
-            imageAlt: "Infografia detalhada sobre o 25 de Novembro"
-          },
-          {
-            title: "Recursos Audiovisuais",
-            icon: <Play size={64} className="text-rev-red" />,
-            paragraphs: [
-              "Aprofunde o seu conhecimento com estes registos históricos.",
-              "Veja o vídeo documental e oiça o podcast para uma análise aprofundada dos eventos."
-            ],
-            video: "./crisenovembro1975.mp4",
-            audio: "./crisenovembro1975.mp3"
+              "O 25 de Novembro encerrou o PREC e a tutela militar sobre a política. O MFA foi extinto enquanto motor político e o exército regressou aos quartéis.",
+              "Este evento garantiu a estabilidade necessária para aprovar a Constituição de 1976 e realizar as primeiras eleições livres e universais.",
+              "Historicamente, representa o triunfo da democracia representativa sobre as utopias revolucionárias de extrema-esquerda e as tentativas de restauração autoritária de direita."
+            ]
           }
         ];
 
         const TIMELINE_EVENTS = [
-          { period: "20 NOV", title: "Governo em Greve", desc: "O Governo suspende funções por falta de condições de segurança." },
-          { period: "Madrugada 25", title: "A Faísca", desc: "Paraquedistas ocupam bases aéreas após destituição de Otelo." },
-          { period: "16:30 - Dia 25", title: "Estado de Sítio", desc: "Costa Gomes decreta o estado de sítio, legalizando a resposta de Eanes." },
-          { period: "Noite de 25", title: "Contragolpe", desc: "Comandos da Amadora (Jaime Neves) recuperam Monsanto e a RTP." },
-          { period: "26 NOV", title: "Rendição", desc: "Dissolução do COPCON e prisão dos oficiais revoltosos." },
-          { period: "Consequência", title: "Fim do PREC", desc: "Estabelecimento da democracia liberal e aprovação da Constituição de 1976." }
+          { period: "25 ABR 1975", title: "Eleições Constituinte", desc: "Primeiras eleições livres. Vitória do PS, mas o poder real continuava no MFA." },
+          { period: "VERÃO 1975", title: "Verão Quente", desc: "Violência política, assaltos a sedes, divisões profundas Norte/Sul." },
+          { period: "AGO 1975", title: "Documento dos Nove", desc: "Melo Antunes publica manifesto contra a 'ditadura' revolucionária, unindo os moderados." },
+          { period: "12 NOV 1975", title: "Cerco ao Parlamento", desc: "Operários da construção civil cercam deputados. O governo suspende funções a 20 Nov." },
+          { period: "25 NOV (Manhã)", title: "Insurreição", desc: "Paraquedistas ocupam bases aéreas (Tancos, Monte Real) em protesto contra a saída de Otelo." },
+          { period: "25 NOV (16:30)", title: "Ponto de Viragem", desc: "Costa Gomes decreta Estado de Sítio. Eanes assume o comando das operações." },
+          { period: "26 NOV", title: "Vitória Moderada", desc: "Comandos da Amadora (Jaime Neves) controlam Lisboa. Rendição do COPCON." },
+          { period: "2 ABR 1976", title: "Constituição", desc: "Aprovação da Constituição da República, consagrando o estado de direito democrático." }
         ];
 
-        // --- DADOS DOS FLASHCARDS (Atualizado com +5) ---
+        // --- DADOS DOS FLASHCARDS ---
         const FLASHCARD_DATA = [
             {
                 q: "No contexto da Guerra Fria, qual era o principal receio de Henry Kissinger (EUA) em relação a Portugal?",
@@ -211,7 +203,6 @@
                 q: "Qual era a função da PIDE durante o Estado Novo?",
                 a: "Polícia política responsável pela repressão da oposição e controlo social."
             },
-            // Novos Cartões
             {
                 q: "Qual foi a motivação inicial do 'Movimento dos Capitães'?",
                 a: "A oposição ao regime e à guerra colonial, procurando salvar a 'dignidade' militar."
@@ -699,13 +690,10 @@
             );
         };
 
-        // --- COMPONENTE DE CORRESPONDÊNCIA (Novo Genérico) ---
+        // --- COMPONENTE DE CORRESPONDÊNCIA ---
         const MatchingChallenge = ({ challenge, onComplete, isCompleted }) => {
-            const [selectedItem, setSelectedItem] = useState(null); // { id: '...', type: 'item' | 'match' }
-            const [matches, setMatches] = useState({}); // { itemId: matchId }
-            const [correctMatches, setCorrectMatches] = useState({}); // { itemId: true }
-
-            // Shuffle
+            const [selectedItem, setSelectedItem] = useState(null);
+            const [correctMatches, setCorrectMatches] = useState({});
             const [shuffledItems, setShuffledItems] = useState([]);
             const [shuffledMatches, setShuffledMatches] = useState([]);
 
@@ -715,23 +703,19 @@
             }, [challenge]);
 
             const handleSelect = (id, type, label) => {
-                if (correctMatches[type === 'item' ? id : Object.keys(correctMatches).find(k => challenge.items.find(i => i.match === label).id === k)]) return; // Ignorar se já correto
+                if (correctMatches[type === 'item' ? id : Object.keys(correctMatches).find(k => challenge.items.find(i => i.match === label).id === k)]) return;
 
                 if (!selectedItem) {
                     setSelectedItem({ id, type, label });
                 } else {
                     if (selectedItem.type === type) {
-                        setSelectedItem({ id, type, label }); // Trocar seleção
+                        setSelectedItem({ id, type, label });
                     } else {
-                        // Tentar match
                         let itemPart = type === 'item' ? { id, label } : selectedItem;
                         let matchPart = type === 'match' ? { id, label } : selectedItem;
-                        
-                        // Verificar se é correto
                         const originalPair = challenge.items.find(i => i.id === itemPart.id);
                         
                         if (originalPair && originalPair.match === matchPart.label) {
-                            // Correto
                             const newCorrect = { ...correctMatches, [itemPart.id]: true };
                             setCorrectMatches(newCorrect);
                             setSelectedItem(null);
@@ -739,7 +723,6 @@
                                 onComplete();
                             }
                         } else {
-                            // Errado - Feedback visual rápido (pode ser adicionado aqui)
                             setSelectedItem(null);
                         }
                     }
@@ -756,7 +739,6 @@
                     </div>
                     
                     <div className="grid grid-cols-2 gap-8">
-                        {/* Coluna da Esquerda (Itens) */}
                         <div className="space-y-3">
                             {shuffledItems.map(item => {
                                 const isSolved = correctMatches[item.id];
@@ -777,15 +759,11 @@
                                 )
                             })}
                         </div>
-
-                        {/* Coluna da Direita (Matches) */}
                         <div className="space-y-3">
                             {shuffledMatches.map((item, idx) => {
-                                // Find which item maps to this match label to check solved status
                                 const sourceItem = challenge.items.find(i => i.match === item.match);
                                 const isSolved = correctMatches[sourceItem.id];
                                 const isSelected = selectedItem?.label === item.match && selectedItem?.type === 'match';
-
                                 return (
                                     <button 
                                         key={idx}
@@ -809,7 +787,7 @@
 
         // --- ATIVIDADES FORMATIVAS ---
         const FormativeActivities = ({ onComplete }) => {
-            const [completedChallenges, setCompletedChallenges] = useState([]); // IDs dos desafios completos
+            const [completedChallenges, setCompletedChallenges] = useState([]);
             const [tfAnswers, setTfAnswers] = useState({});
 
             const handleChallengeComplete = (id) => {
@@ -818,7 +796,6 @@
                 }
             };
 
-            // Perguntas Verdadeiro/Falso
             const tfQuestions = [
                 { t: "O 25 de Novembro levou a uma Guerra Civil sangrenta.", a: false },
                 { t: "Os Comandos da Amadora apoiaram os Moderados.", a: true },
@@ -829,18 +806,11 @@
             const handleTfAnswer = (idx, val) => setTfAnswers(prev => ({...prev, [idx]: val}));
 
             const finish = () => {
-                // Calcular pontuação: 
-                // 4 Desafios * 4 pontos cada (16 pts) + 4 VF (4 pts) = 20 pts máx
                 let score = 0;
-                
-                // Pontos dos desafios (4 pontos por desafio completo)
                 score += completedChallenges.length * 4;
-
-                // Pontos do VF
                 tfQuestions.forEach((q, i) => {
                     if (tfAnswers[i] === q.a) score += 1;
                 });
-
                 onComplete(score);
             };
 
@@ -850,9 +820,8 @@
             return (
                 <div className="max-w-4xl mx-auto animate-fade-in pb-12">
                     <h2 className="text-3xl font-bold font-serif text-center text-rev-gold mb-2">Atividades Práticas</h2>
-                    <p className="text-center text-gray-400 mb-8">Complete os desafios de correspondência e o V/F para desbloquear o Quiz Final.</p>
+                    <p className="text-center text-gray-400 mb-8">Complete os desafios de correspondência e o V/F para desbloquear o Debate e o Quiz Final.</p>
                     
-                    {/* Desafios de Correspondência */}
                     {MATCHING_CHALLENGES.map(challenge => (
                         <MatchingChallenge 
                             key={challenge.id} 
@@ -862,7 +831,6 @@
                         />
                     ))}
 
-                    {/* Verdadeiro ou Falso */}
                     <div className="bg-neutral-900 p-6 rounded-xl border border-white/10 mt-8">
                         <h3 className="text-xl font-serif text-rev-gold mb-4 flex items-center gap-2">
                             <CheckCircle size={20}/> Verdadeiro ou Falso
@@ -895,12 +863,101 @@
 
                     <div className="text-center mt-12">
                         <Button onClick={finish} variant="primary" disabled={!allChallengesDone || !allTfAnswered}>
-                            Finalizar Prática e Ir para o Quiz
+                            Ir para o Debate
                         </Button>
-                        {(!allChallengesDone || !allTfAnswered) && (
-                            <p className="text-xs text-red-400 mt-2">Complete todas as atividades para continuar.</p>
-                        )}
                     </div>
+                </div>
+            );
+        };
+
+        // --- NOVO MÓDULO DE DEBATE ---
+        const DebateActivity = ({ onComplete }) => {
+            const [selectedPerspective, setSelectedPerspective] = useState(null); // 'coup' or 'counter'
+            const [reflection, setReflection] = useState("");
+            const [submitted, setSubmitted] = useState(false);
+
+            const handleSubmit = () => {
+                if(reflection.trim().length > 10) {
+                    setSubmitted(true);
+                }
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto animate-fade-in pb-12">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold font-serif text-rev-gold mb-2">O Grande Debate Histórico</h2>
+                        <p className="text-gray-400">Analise as perspetivas, escolha a sua "Lente Histórica" e defenda a sua visão.</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8 mb-12">
+                        {/* Tese A */}
+                        <div 
+                            onClick={() => setSelectedPerspective('counter')}
+                            className={`cursor-pointer p-6 rounded-xl border-2 transition-all ${
+                                selectedPerspective === 'counter' ? 'bg-blue-900/30 border-blue-500' : 'bg-neutral-900 border-white/10 hover:border-blue-500/50'
+                            }`}
+                        >
+                            <h3 className="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2">
+                                <Shield size={20}/> O Contragolpe Necessário
+                            </h3>
+                            <ul className="text-sm text-gray-300 space-y-2 list-disc list-inside">
+                                <li>Ação defensiva para salvar a democracia pluralista.</li>
+                                <li>Legitimada pelo Presidente da República.</li>
+                                <li>Restaurou a ordem e a hierarquia militar.</li>
+                                <li>Evitou uma ditadura comunista ("Nova Cuba").</li>
+                            </ul>
+                        </div>
+
+                        {/* Tese B */}
+                        <div 
+                            onClick={() => setSelectedPerspective('coup')}
+                            className={`cursor-pointer p-6 rounded-xl border-2 transition-all ${
+                                selectedPerspective === 'coup' ? 'bg-red-900/30 border-red-500' : 'bg-neutral-900 border-white/10 hover:border-red-500/50'
+                            }`}
+                        >
+                            <h3 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+                                <AlertCircle size={20}/> O Golpe Contrarrevolucionário
+                            </h3>
+                            <ul className="text-sm text-gray-300 space-y-2 list-disc list-inside">
+                                <li>Ação premeditada para travar o avanço social.</li>
+                                <li>Plano elaborado meses antes pelos moderados.</li>
+                                <li>Visava a depuração da esquerda das Forças Armadas.</li>
+                                <li>Travou o projeto de "Poder Popular" e democracia direta.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {selectedPerspective && (
+                        <div className="bg-neutral-800 p-8 rounded-xl border-t-4 border-rev-gold animate-fade-in">
+                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <MessageSquare size={20} /> A Sua Reflexão
+                            </h3>
+                            <p className="text-sm text-gray-400 mb-4">
+                                Com base na perspetiva que escolheu ({selectedPerspective === 'counter' ? 'Contragolpe' : 'Golpe'}), escreva um breve argumento defendendo:
+                                1. A sua visão histórica; 2. A importância do evento para a democracia atual.
+                            </p>
+                            <textarea 
+                                className="w-full bg-neutral-900 text-white p-4 rounded-lg border border-gray-700 focus:border-rev-gold outline-none h-32 mb-4"
+                                placeholder="Escreva aqui a sua defesa..."
+                                value={reflection}
+                                onChange={(e) => setReflection(e.target.value)}
+                                disabled={submitted}
+                            />
+                            
+                            {!submitted ? (
+                                <Button onClick={handleSubmit} variant="secondary" disabled={reflection.trim().length < 10}>
+                                    Submeter Argumento
+                                </Button>
+                            ) : (
+                                <div className="text-center">
+                                    <p className="text-green-400 font-bold mb-4">Reflexão registada! Está pronto para o Quiz Final.</p>
+                                    <Button onClick={onComplete} variant="primary">
+                                        Avançar para o Quiz
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -1044,8 +1101,6 @@
             const [generated, setGenerated] = useState(false);
             const [reviewing, setReviewing] = useState(false);
             
-            // Cálculo Final (Ex: 50% Quiz + 50% Prática ou separado)
-            // Aqui apresentamos ambos.
             const quizPct = Math.round((quizScore / quizTotal) * 100);
             const practicePct = Math.round((practiceScore / practiceTotal) * 100);
 
@@ -1102,7 +1157,6 @@
             return (
                 <div className="animate-fade-in">
                     <div id="certificate-section" className="bg-rev-paper text-black p-12 rounded-xl shadow-2xl max-w-4xl mx-auto text-center border-[20px] border-double border-rev-gold relative">
-                        {/* Marca d'água decorativa */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
                             <Shield size={400} />
                         </div>
@@ -1175,10 +1229,11 @@
             const goTimeline = () => setPhase(APP_PHASES.TIMELINE);
             const goFlashcards = () => setPhase(APP_PHASES.FLASHCARDS);
             const goFormative = () => setPhase(APP_PHASES.FORMATIVE);
-            const goQuiz = (score) => { 
-                setPracticeScore(score); 
-                setPhase(APP_PHASES.QUIZ); 
+            const goDebate = (score) => {
+                setPracticeScore(score);
+                setPhase(APP_PHASES.DEBATE);
             };
+            const goQuiz = () => setPhase(APP_PHASES.QUIZ);
             
             const finishQuiz = (s, t, answers) => { 
                 setQuizResults({score:s, total:t, userAnswers: answers}); 
@@ -1203,7 +1258,7 @@
                             <div className="max-w-6xl mx-auto flex justify-between items-center">
                                 <span className="font-bold text-rev-red tracking-wider">25 NOV 1975</span>
                                 <div className="text-xs text-gray-500 space-x-2 hidden sm:block">
-                                    {[APP_PHASES.LEARNING, APP_PHASES.TIMELINE, APP_PHASES.FLASHCARDS, APP_PHASES.FORMATIVE, APP_PHASES.QUIZ].map((p, i) => (
+                                    {[APP_PHASES.LEARNING, APP_PHASES.TIMELINE, APP_PHASES.FLASHCARDS, APP_PHASES.FORMATIVE, APP_PHASES.DEBATE, APP_PHASES.QUIZ].map((p, i) => (
                                         <span key={p} className={phase === p ? "text-rev-gold font-bold mx-1" : "opacity-30 mx-1"}>
                                             0{i+1}
                                         </span>
@@ -1211,7 +1266,7 @@
                                 </div>
                                 <div className="text-xs text-rev-gold font-bold sm:hidden">
                                      Passo {
-                                         [APP_PHASES.LEARNING, APP_PHASES.TIMELINE, APP_PHASES.FLASHCARDS, APP_PHASES.FORMATIVE, APP_PHASES.QUIZ].indexOf(phase) + 1
+                                         [APP_PHASES.LEARNING, APP_PHASES.TIMELINE, APP_PHASES.FLASHCARDS, APP_PHASES.FORMATIVE, APP_PHASES.DEBATE, APP_PHASES.QUIZ].indexOf(phase) + 1
                                      }
                                 </div>
                             </div>
@@ -1224,14 +1279,15 @@
                             {phase === APP_PHASES.LEARNING && <LearningFlow onComplete={goTimeline} onImageClick={openZoom} />}
                             {phase === APP_PHASES.TIMELINE && <Timeline onComplete={goFlashcards} />}
                             {phase === APP_PHASES.FLASHCARDS && <Flashcards onComplete={goFormative} />}
-                            {phase === APP_PHASES.FORMATIVE && <FormativeActivities onComplete={goQuiz} />}
+                            {phase === APP_PHASES.FORMATIVE && <FormativeActivities onComplete={goDebate} />}
+                            {phase === APP_PHASES.DEBATE && <DebateActivity onComplete={goQuiz} />}
                             {phase === APP_PHASES.QUIZ && <Quiz onComplete={finishQuiz} />}
                             {phase === APP_PHASES.CONCLUSION && <Conclusion 
                                 quizScore={quizResults.score} 
                                 quizTotal={quizResults.total} 
                                 userAnswers={quizResults.userAnswers}
                                 practiceScore={practiceScore}
-                                practiceTotal={20} // 16 Match + 4 VF
+                                practiceTotal={20}
                                 onRestart={restart} 
                             />}
                         </div>
