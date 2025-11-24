@@ -46,7 +46,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-            animation: fade-in 0.5s ease-out forwards;
+            animation: fade-in 0.3s ease-out forwards;
         }
 
         /* Efeito de Flip Card */
@@ -70,7 +70,7 @@
             }
             .page-break { page-break-before: always; }
             .no-print { display: none !important; }
-            /* Forçar cores de fundo para impressão se o browser permitir */
+            /* Reset cores para impressão */
             .bg-rev-paper { background-color: #f5f5f4 !important; -webkit-print-color-adjust: exact; }
             .text-rev-red { color: #b91c1c !important; }
             .text-rev-gold { color: #d97706 !important; }
@@ -87,25 +87,25 @@
     }
     </script>
 </head>
-<body class="bg-rev-dark text-rev-stone font-sans selection:bg-rev-red selection:text-white">
+<body class="bg-rev-dark text-rev-stone font-sans selection:bg-rev-red selection:text-white overflow-x-hidden">
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useCallback, StrictMode } from 'react';
         import ReactDOM from 'react-dom/client';
-        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon, MessageSquare, FileText } from 'lucide-react';
+        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon, MessageSquare, FileText, GraduationCap } from 'lucide-react';
 
         // --- DADOS DO CONTEÚDO ---
 
-        const APP_PHASES = {
-          INTRO: 'INTRO',
-          LEARNING: 'LEARNING',
-          TIMELINE: 'TIMELINE',
-          FLASHCARDS: 'FLASHCARDS',
-          FORMATIVE: 'FORMATIVE',
-          DEBATE: 'DEBATE',
-          QUIZ: 'QUIZ',
-          CONCLUSION: 'CONCLUSION',
+        const APP_SECTIONS = {
+          INTRO: 'intro',
+          LEARNING: 'learning',
+          TIMELINE: 'timeline',
+          FLASHCARDS: 'flashcards',
+          FORMATIVE: 'formative',
+          DEBATE: 'debate',
+          QUIZ: 'quiz',
+          CONCLUSION: 'conclusion',
         };
 
         const LEARNING_CONTENT = [
@@ -154,7 +154,6 @@
               "Historicamente, representa o triunfo da democracia representativa sobre as utopias revolucionárias de extrema-esquerda e as tentativas de restauração autoritária de direita."
             ]
           },
-          // --- REINTEGRAÇÃO DOS RECURSOS MULTIMÉDIA ---
           {
             title: "Apresentação: Resumo Visual",
             icon: <Projector size={64} className="text-purple-400" />,
@@ -197,265 +196,52 @@
           { period: "2 ABR 1976", title: "Constituição", desc: "Aprovação da Constituição da República, consagrando o estado de direito democrático." }
         ];
 
-        // --- DADOS DOS FLASHCARDS ---
+        // --- DADOS FLASHCARDS (15 Cartões) ---
         const FLASHCARD_DATA = [
-            {
-                q: "No contexto da Guerra Fria, qual era o principal receio de Henry Kissinger (EUA) em relação a Portugal?",
-                a: "O receio era o surgimento de uma 'nova Cuba' na Europa, levando os EUA a considerar uma invasão."
-            },
-            {
-                q: "Qual era a tese principal do livro 'Portugal e o Futuro' de António de Spínola (1974)?",
-                a: "Advogava uma solução política, e não militar, como saída para a Guerra do Ultramar."
-            },
-            {
-                q: "Quais eram os três objetivos fundamentais do MFA, conhecidos como os três 'D'?",
-                a: "Descolonizar, Desenvolver e Democratizar."
-            },
-            {
-                q: "O que foi o 'Levantamento das Caldas' a 16 de março de 1974?",
-                a: "Uma tentativa falhada de golpe que mostrou ao MFA que a via militar era a única opção para derrubar a ditadura."
-            },
-            {
-                q: "Quem foi o primeiro Presidente da República eleito por sufrágio universal após a revolução (1976)?",
-                a: "O General Ramalho Eanes."
-            },
-            {
-                q: "Que fação do MFA defendia uma transição gradual para uma democracia pluralista de tipo ocidental?",
-                a: "O setor moderado, conhecido como o 'Grupo dos Nove', liderado por Melo Antunes."
-            },
-            {
-                q: "Qual foi o papel de Otelo Saraiva de Carvalho no 25 de Abril de 1974?",
-                a: "Foi o principal estratega e comandante das operações militares."
-            },
-            {
-                q: "O que representou a criação do Conselho da Revolução após o 11 de Março de 1975?",
-                a: "A institucionalização do poder militar como órgão político supremo."
-            },
-            {
-                q: "A tentativa de golpe de 11 de Março de 1975, liderada por Spínola, visava travar que setor?",
-                a: "Visava travar a esquerda revolucionária e a sua crescente influência."
-            },
-            {
-                q: "Qual era a função da PIDE durante o Estado Novo?",
-                a: "Polícia política responsável pela repressão da oposição e controlo social."
-            },
-            {
-                q: "Qual foi a motivação inicial do 'Movimento dos Capitães'?",
-                a: "A oposição ao regime e à guerra colonial, procurando salvar a 'dignidade' militar."
-            },
-            {
-                q: "De que forma a população civil alterou a dinâmica do golpe de 25 de Abril?",
-                a: "A população saiu às ruas, confraternizou com os soldados e exigiu a libertação dos presos políticos."
-            },
-            {
-                q: "Em que territórios africanos as forças armadas enfrentavam guerrilhas?",
-                a: "Guiné-Bissau, Angola e Moçambique."
-            },
-            {
-                q: "Que nome informal foi dado ao plano operacional de Ramalho Eanes no 25 de Novembro?",
-                a: "O 'Plano dos Coronéis'."
-            },
-            {
-                q: "Qual foi o papel do Brigadeiro Pires Veloso durante a crise de 1975?",
-                a: "Conhecido como 'Vice-rei do Norte', comandou a Região Militar Norte, um bastião anti-radical."
-            }
+            { q: "No contexto da Guerra Fria, qual era o principal receio de Henry Kissinger (EUA) em relação a Portugal?", a: "O receio era o surgimento de uma 'nova Cuba' na Europa, levando os EUA a considerar uma invasão." },
+            { q: "Qual era a tese principal do livro 'Portugal e o Futuro' de António de Spínola (1974)?", a: "Advogava uma solução política, e não militar, como saída para a Guerra do Ultramar." },
+            { q: "Quais eram os três objetivos fundamentais do MFA, conhecidos como os três 'D'?", a: "Descolonizar, Desenvolver e Democratizar." },
+            { q: "O que foi o 'Levantamento das Caldas' a 16 de março de 1974?", a: "Uma tentativa falhada de golpe que mostrou ao MFA que a via militar era a única opção para derrubar a ditadura." },
+            { q: "Quem foi o primeiro Presidente da República eleito por sufrágio universal após a revolução (1976)?", a: "O General Ramalho Eanes." },
+            { q: "Que fação do MFA defendia uma transição gradual para uma democracia pluralista de tipo ocidental?", a: "O setor moderado, conhecido como o 'Grupo dos Nove', liderado por Melo Antunes." },
+            { q: "Qual foi o papel de Otelo Saraiva de Carvalho no 25 de Abril de 1974?", a: "Foi o principal estratega e comandante das operações militares." },
+            { q: "O que representou a criação do Conselho da Revolução após o 11 de Março de 1975?", a: "A institucionalização do poder militar como órgão político supremo." },
+            { q: "A tentativa de golpe de 11 de Março de 1975, liderada por Spínola, visava travar que setor?", a: "Visava travar a esquerda revolucionária e a sua crescente influência." },
+            { q: "Qual era a função da PIDE durante o Estado Novo?", a: "Polícia política responsável pela repressão da oposição e controlo social." },
+            { q: "Qual foi a motivação inicial do 'Movimento dos Capitães'?", a: "A oposição ao regime e à guerra colonial, procurando salvar a 'dignidade' militar." },
+            { q: "De que forma a população civil alterou a dinâmica do golpe de 25 de Abril?", a: "A população saiu às ruas, confraternizou com os soldados e exigiu a libertação dos presos políticos." },
+            { q: "Em que territórios africanos as forças armadas enfrentavam guerrilhas?", a: "Guiné-Bissau, Angola e Moçambique." },
+            { q: "Que nome informal foi dado ao plano operacional de Ramalho Eanes no 25 de Novembro?", a: "O 'Plano dos Coronéis'." },
+            { q: "Qual foi o papel do Brigadeiro Pires Veloso durante a crise de 1975?", a: "Conhecido como 'Vice-rei do Norte', comandou a Região Militar Norte, um bastião anti-radical." }
         ];
 
-        // --- DADOS DAS ATIVIDADES PRÁTICAS (CORRESPONDÊNCIA) ---
+        // --- DADOS ATIVIDADES PRÁTICAS ---
         const MATCHING_CHALLENGES = [
-            {
-                id: 'lideres',
-                title: "Líderes e Fações",
-                items: [
-                    { id: 'eanes', label: "Ramalho Eanes", match: "Moderados" },
-                    { id: 'otelo', label: "Otelo Saraiva de Carvalho", match: "COPCON / Radicais" },
-                    { id: 'vasco', label: "Vasco Gonçalves", match: "Gonçalvistas" },
-                    { id: 'jaime', label: "Jaime Neves", match: "Comandos" }
-                ]
-            },
-            {
-                id: 'datas',
-                title: "Datas Importantes",
-                items: [
-                    { id: '25abr', label: "25 de Abril 1974", match: "Revolução dos Cravos" },
-                    { id: '11mar', label: "11 de Março 1975", match: "Golpe Falhado de Spínola" },
-                    { id: '25nov', label: "25 de Novembro 1975", match: "Fim do PREC" },
-                    { id: '2abr', label: "2 de Abril 1976", match: "Aprovação da Constituição" }
-                ]
-            },
-            {
-                id: 'acronimos',
-                title: "Siglas da Revolução",
-                items: [
-                    { id: 'mfa', label: "MFA", match: "Movimento das Forças Armadas" },
-                    { id: 'copcon', label: "COPCON", match: "Comando Operacional do Continente" },
-                    { id: 'prec', label: "PREC", match: "Processo Revolucionário em Curso" },
-                    { id: 'ad', label: "Grupo dos Nove", match: "Documento dos Nove" }
-                ]
-            },
-            {
-                id: 'locais',
-                title: "Geografia da Crise",
-                items: [
-                    { id: 'tancos', label: "Tancos", match: "Paraquedistas" },
-                    { id: 'monsanto', label: "Monsanto", match: "Comando da Força Aérea" },
-                    { id: 'amadora', label: "Amadora", match: "Posto Comando Eanes" },
-                    { id: 'belem', label: "Palácio de Belém", match: "Presidente da República" }
-                ]
-            }
+            { id: 'lideres', title: "Líderes e Fações", items: [{ id: 'eanes', label: "Ramalho Eanes", match: "Moderados" }, { id: 'otelo', label: "Otelo Saraiva de Carvalho", match: "COPCON / Radicais" }, { id: 'vasco', label: "Vasco Gonçalves", match: "Gonçalvistas" }, { id: 'jaime', label: "Jaime Neves", match: "Comandos" }] },
+            { id: 'datas', title: "Datas Importantes", items: [{ id: '25abr', label: "25 de Abril 1974", match: "Revolução dos Cravos" }, { id: '11mar', label: "11 de Março 1975", match: "Golpe Falhado de Spínola" }, { id: '25nov', label: "25 de Novembro 1975", match: "Fim do PREC" }, { id: '2abr', label: "2 de Abril 1976", match: "Aprovação da Constituição" }] },
+            { id: 'acronimos', title: "Siglas da Revolução", items: [{ id: 'mfa', label: "MFA", match: "Movimento das Forças Armadas" }, { id: 'copcon', label: "COPCON", match: "Comando Operacional do Continente" }, { id: 'prec', label: "PREC", match: "Processo Revolucionário em Curso" }, { id: 'ad', label: "Grupo dos Nove", match: "Documento dos Nove" }] },
+            { id: 'locais', title: "Geografia da Crise", items: [{ id: 'tancos', label: "Tancos", match: "Paraquedistas" }, { id: 'monsanto', label: "Monsanto", match: "Comando da Força Aérea" }, { id: 'amadora', label: "Amadora", match: "Posto Comando Eanes" }, { id: 'belem', label: "Palácio de Belém", match: "Presidente da República" }] }
         ];
 
         const QUIZ_QUESTIONS = [
-          { 
-            question: "Qual foi o evento imediato na madrugada de 25 de novembro de 1975 que serviu de catalisador para a insurreição dos paraquedistas?", 
-            options: [
-                "A nomeação de Vasco Lourenço para o comando da Região Militar de Lisboa, em substituição de Otelo Saraiva de Carvalho.", 
-                "A convocação de uma manifestação da Intersindical contra a NATO.", 
-                "A demissão do VI Governo Provisório liderado por Pinheiro de Azevedo.", 
-                "A publicação do \"Documento dos Nove\" pelos militares moderados."
-            ], 
-            correct: 0, 
-            instruction: "Pense numa mudança de poder numa estrutura militar chave de Lisboa que desagradou profundamente a ala radical.",
-            expl: "Esta decisão do Conselho da Revolução foi vista pela ala radical como uma provocação e levou à ocupação de bases aéreas pelos paraquedistas, que não aceitavam a substituição de Otelo." 
-          },
-          { 
-            question: "Qual foi a ação decisiva do Presidente da República, General Costa Gomes, na tarde de 25 de novembro, que conferiu cobertura legal à intervenção militar dos moderados liderados por Ramalho Eanes?", 
-            options: [
-                "A decretação do estado de sítio na Região Militar de Lisboa.", 
-                "A dissolução do COPCON.", 
-                "A negociação de um acordo direto com Otelo Saraiva de Carvalho em Belém.", 
-                "O apelo à intervenção de forças militares da NATO."
-            ], 
-            correct: 0, 
-            instruction: "Considere o instrumento legal que um chefe de Estado pode usar para suspender certas garantias e autorizar uma resposta militar a uma insurreição.",
-            expl: "Esta medida, tomada às 16h30, transformou a ação dos sublevados num ato de ilegalidade contra o Estado e validou o plano operacional dos moderados como uma ação de reposição da ordem." 
-          },
-          { 
-            question: "Segundo a perspetiva do Partido Comunista Português (PCP), expressa nos textos, como é caracterizado o 25 de Novembro?", 
-            options: [
-                "Uma sublevação espontânea de unidades militares esquerdistas sem um plano definido.", 
-                "Uma luta interna entre marxistas que resultou na vitória da ala mais moderada.", 
-                "Uma tentativa de golpe de Estado liderada por Otelo Saraiva de Carvalho e pela extrema-esquerda.", 
-                "Um golpe militar contra-revolucionário, preparado com antecedência pelos moderados e pela direita."
-            ], 
-            correct: 3, 
-            instruction: "Pense em como o PCP via a ação do grupo de Ramalho Eanes e do \"Grupo dos Nove\".",
-            expl: "O PCP argumenta que existia um plano operacional elaborado há meses pelo grupo de Eanes e pelo \"Grupo dos Nove\" para eliminar a influência da esquerda nas Forças Armadas." 
-          },
-          { 
-            question: "Que unidade militar, sob o comando de Jaime Neves, foi crucial para a vitória dos moderados, liderando a ofensiva para retomar pontos estratégicos em Lisboa, como o quartel-general da Força Aérea em Monsanto?", 
-            options: [
-                "A Escola Prática de Cavalaria de Santarém.", 
-                "O Regimento de Artilharia de Lisboa (RALIS).", 
-                "Os Fuzileiros do Alfeite.", 
-                "O Regimento de Comandos da Amadora."
-            ], 
-            correct: 3, 
-            instruction: "Esta força especial era conhecida pela sua disciplina e eficácia e operava a partir de uma localidade perto de Lisboa.",
-            expl: "Esta unidade profissional e disciplinada foi a principal força de assalto dos moderados, executando as operações decisivas sob a coordenação de Eanes." 
-          },
-          { 
-            question: "Qual foi uma das consequências diretas do 25 de Novembro para a extrema-direita e para figuras como o Marechal Spínola, segundo a análise de Vitor Teixeira?", 
-            options: [
-                "Assumiram o controlo de várias unidades militares no Norte do país.", 
-                "Spínola regressou do exílio para assumir a Presidência da República.", 
-                "Foram marginalizados e viram o seu projeto de restauração autoritária inviabilizado.", 
-                "Formaram uma aliança formal com o \"Grupo dos Nove\" para governar."
-            ], 
-            correct: 2, 
-            instruction: "O resultado do 25 de Novembro consolidou um caminho democrático que se opunha a ambos os extremos do espectro político.",
-            expl: "A vitória dos moderados consolidou a via democrática pluralista, bloqueando tanto a revolução socialista como as ambições restauracionistas da direita." 
-          },
-          { 
-            question: "Que termo é usado para descrever o período de intensa polarização, conflito social e instabilidade política em Portugal, que se estende aproximadamente de março a novembro de 1975?", 
-            options: [
-                "A Revolução Cultural.", 
-                "O Verão Quente.", 
-                "O Estado Novo.", 
-                "A União Nacional."
-            ], 
-            correct: 1, 
-            instruction: "Pense numa expressão que evoca um clima de alta temperatura social e política durante uma estação específica.",
-            expl: "Este termo, por vezes usado com uma carga depreciativa, descreve o período de maior radicalização e confronto da democratização portuguesa." 
-          },
-          { 
-            question: "De acordo com os textos, a posição de Otelo Saraiva de Carvalho durante a crise foi crucial. Que fator sobre a sua atuação no dia 25 de novembro foi fatal para a sublevação da esquerda radical?", 
-            options: [
-                "Liderou pessoalmente o ataque dos paraquedistas à Base Aérea de Monsanto.", 
-                "Declarou publicamente o seu apoio ao \"Grupo dos Nove\" na manhã do dia 25.", 
-                "A sua ausência e incapacidade de colocar o COPCON ao serviço dos sublevados, deixando-os sem um comando unificado.", 
-                "Negociou a rendição imediata de todas as unidades do COPCON com Ramalho Eanes."
-            ], 
-            correct: 2, 
-            instruction: "A eficácia de uma ação militar depende frequentemente de uma liderança clara e presente. Considere o que aconteceu com a liderança da ala radical nesse dia.",
-            expl: "Otelo ficou incomunicável durante horas cruciais e não conseguiu (ou não quis) unificar as forças radicais sob o seu comando, o que as condenou ao fracasso." 
-          },
-          { 
-            question: "Qual foi a estratégia do Partido Comunista Português (PCP) durante o confronto militar de 25 de novembro?", 
-            options: [
-                "Mobilizar as suas milícias armadas para tomar o poder em Lisboa.", 
-                "Organizar a resistência civil no Norte do país, em aliança com Pires Veloso.", 
-                "Optar pela não-intervenção militar e desmobilizar as bases para evitar uma guerra civil e garantir a sua sobrevivência política.", 
-                "Adotar uma posição de neutralidade, aguardando o desfecho para se aliar ao vencedor."
-            ], 
-            correct: 2, 
-            instruction: "Pense se o PCP optou por um confronto militar de alto risco ou por uma tática de preservação a longo prazo.",
-            expl: "O contacto de Costa Gomes com Cunhal e as ordens internas do partido para não se envolverem foram cruciais para isolar a sublevação militar e evitar uma escalada do conflito." 
-          },
-          { 
-            question: "Que figura internacional, Secretário de Estado dos EUA, expressou a intenção de invadir Portugal para evitar o surgimento de uma \"nova Cuba\" na Europa?", 
-            options: [
-                "Henry Kissinger", 
-                "Leonid Brejnev", 
-                "Valéry Giscard D'Estaing", 
-                "James Callaghan"
-            ], 
-            correct: 0, 
-            instruction: "Esta figura da diplomacia americana era conhecida pela sua política de \"realpolitik\" e pela sua forte oposição ao comunismo durante a Guerra Fria.",
-            expl: "Kissinger via a Revolução Portuguesa com grande alarme, temendo uma expansão do comunismo, e chegou a comunicar aos aliados europeus a intenção de uma intervenção militar." 
-          },
-          { 
-            question: "Os objetivos fundamentais do Movimento das Forças Armadas (MFA) resumiam-se nos chamados \"três D\". Quais eram eles?", 
-            options: [
-                "Defesa, Doutrina e Disciplina.", 
-                "Derrubar, Destituir e Dominar.", 
-                "Direitos, Deveres e Decisão.", 
-                "Descolonizar, Desenvolver e Democratizar."
-            ], 
-            correct: 3, 
-            instruction: "Pense nos três grandes problemas que Portugal enfrentava em 1974: uma guerra no Ultramar, uma economia atrasada e um regime político não representativo.",
-            expl: "Este lema resumia o programa político do MFA: acabar com a guerra colonial, modernizar a economia e instaurar um regime democrático." 
-          },
-          { 
-            question: "Qual foi a consequência política mais significativa da vitória dos moderados a 25 de Novembro, que definiu o futuro do regime em Portugal?", 
-            options: [
-                "A instauração de uma ditadura militar liderada por Ramalho Eanes.", 
-                "A entrada imediata de Portugal na Comunidade Económica Europeia (CEE).", 
-                "O fim do Processo Revolucionário em Curso (PREC) e a criação de condições para a aprovação da Constituição de 1976.", 
-                "O regresso ao poder de figuras do antigo regime do Estado Novo."
-            ], 
-            correct: 2, 
-            instruction: "A data é vista como o ponto de viragem que pôs fim à fase revolucionária e abriu caminho para a normalização institucional do país.",
-            expl: "A vitória dos moderados encerrou o período de instabilidade radical, permitindo a conclusão dos trabalhos da Assembleia Constituinte e a fundação da democracia representativa." 
-          },
-          { 
-            question: "Além da sublevação da esquerda radical, que outro tipo de ameaça à democracia portuguesa foi neutralizado com o desfecho do 25 de Novembro?", 
-            options: [
-                "Uma intervenção militar espanhola para restaurar a monarquia.", 
-                "As ambições restauracionistas de movimentos clandestinos de extrema-direita como o MDLP e o ELP.", 
-                "O separatismo das regiões autónomas dos Açores e da Madeira.", 
-                "A influência da Igreja Católica para a criação de um Estado teocrático."
-            ], 
-            correct: 1, 
-            instruction: "O resultado final do 25 de Novembro foi a vitória de um centro político que se opunha a ambos os extremos.",
-            expl: "A consolidação da democracia pluralista pelos moderados marginalizou não só a esquerda radical, mas também os grupos de direita que pretendiam um regresso a um regime autoritário." 
-          }
+          { question: "Qual foi o evento imediato na madrugada de 25 de novembro de 1975 que serviu de catalisador para a insurreição dos paraquedistas?", options: ["A nomeação de Vasco Lourenço para o comando da Região Militar de Lisboa, em substituição de Otelo Saraiva de Carvalho.", "A convocação de uma manifestação da Intersindical contra a NATO.", "A demissão do VI Governo Provisório liderado por Pinheiro de Azevedo.", "A publicação do \"Documento dos Nove\" pelos militares moderados."], correct: 0, instruction: "Pense numa mudança de poder numa estrutura militar chave de Lisboa que desagradou profundamente a ala radical.", expl: "Esta decisão do Conselho da Revolução foi vista pela ala radical como uma provocação e levou à ocupação de bases aéreas pelos paraquedistas, que não aceitavam a substituição de Otelo." },
+          { question: "Qual foi a ação decisiva do Presidente da República, General Costa Gomes, na tarde de 25 de novembro, que conferiu cobertura legal à intervenção militar dos moderados liderados por Ramalho Eanes?", options: ["A decretação do estado de sítio na Região Militar de Lisboa.", "A dissolução do COPCON.", "A negociação de um acordo direto com Otelo Saraiva de Carvalho em Belém.", "O apelo à intervenção de forças militares da NATO."], correct: 0, instruction: "Considere o instrumento legal que um chefe de Estado pode usar para suspender certas garantias e autorizar uma resposta militar a uma insurreição.", expl: "Esta medida, tomada às 16h30, transformou a ação dos sublevados num ato de ilegalidade contra o Estado e validou o plano operacional dos moderados como uma ação de reposição da ordem." },
+          { question: "Segundo a perspetiva do Partido Comunista Português (PCP), expressa nos textos, como é caracterizado o 25 de Novembro?", options: ["Uma sublevação espontânea de unidades militares esquerdistas sem um plano definido.", "Uma luta interna entre marxistas que resultou na vitória da ala mais moderada.", "Uma tentativa de golpe de Estado liderada por Otelo Saraiva de Carvalho e pela extrema-esquerda.", "Um golpe militar contra-revolucionário, preparado com antecedência pelos moderados e pela direita."], correct: 3, instruction: "Pense em como o PCP via a ação do grupo de Ramalho Eanes e do \"Grupo dos Nove\".", expl: "O PCP argumenta que existia um plano operacional elaborado há meses pelo grupo de Eanes e pelo \"Grupo dos Nove\" para eliminar a influência da esquerda nas Forças Armadas." },
+          { question: "Que unidade militar, sob o comando de Jaime Neves, foi crucial para a vitória dos moderados, liderando a ofensiva para retomar pontos estratégicos em Lisboa, como o quartel-general da Força Aérea em Monsanto?", options: ["A Escola Prática de Cavalaria de Santarém.", "O Regimento de Artilharia de Lisboa (RALIS).", "Os Fuzileiros do Alfeite.", "O Regimento de Comandos da Amadora."], correct: 3, instruction: "Esta força especial era conhecida pela sua disciplina e eficácia e operava a partir de uma localidade perto de Lisboa.", expl: "Esta unidade profissional e disciplinada foi a principal força de assalto dos moderados, executando as operações decisivas sob a coordenação de Eanes." },
+          { question: "Qual foi uma das consequências diretas do 25 de Novembro para a extrema-direita e para figuras como o Marechal Spínola, segundo a análise de Vitor Teixeira?", options: ["Assumiram o controlo de várias unidades militares no Norte do país.", "Spínola regressou do exílio para assumir a Presidência da República.", "Foram marginalizados e viram o seu projeto de restauração autoritária inviabilizado.", "Formaram uma aliança formal com o \"Grupo dos Nove\" para governar."], correct: 2, instruction: "O resultado do 25 de Novembro consolidou um caminho democrático que se opunha a ambos os extremos do espectro político.", expl: "A vitória dos moderados consolidou a via democrática pluralista, bloqueando tanto a revolução socialista como as ambições restauracionistas da direita." },
+          { question: "Que termo é usado para descrever o período de intensa polarização, conflito social e instabilidade política em Portugal, que se estende aproximadamente de março a novembro de 1975?", options: ["A Revolução Cultural.", "O Verão Quente.", "O Estado Novo.", "A União Nacional."], correct: 1, instruction: "Pense numa expressão que evoca um clima de alta temperatura social e política durante uma estação específica.", expl: "Este termo, por vezes usado com uma carga depreciativa, descreve o período de maior radicalização e confronto da democratização portuguesa." },
+          { question: "De acordo com os textos, a posição de Otelo Saraiva de Carvalho durante a crise foi crucial. Que fator sobre a sua atuação no dia 25 de novembro foi fatal para a sublevação da esquerda radical?", options: ["Liderou pessoalmente o ataque dos paraquedistas à Base Aérea de Monsanto.", "Declarou publicamente o seu apoio ao \"Grupo dos Nove\" na manhã do dia 25.", "A sua ausência e incapacidade de colocar o COPCON ao serviço dos sublevados, deixando-os sem um comando unificado.", "Negociou a rendição imediata de todas as unidades do COPCON com Ramalho Eanes."], correct: 2, instruction: "A eficácia de uma ação militar depende frequentemente de uma liderança clara e presente. Considere o que aconteceu com a liderança da ala radical nesse dia.", expl: "Otelo ficou incomunicável durante horas cruciais e não conseguiu (ou não quis) unificar as forças radicais sob o seu comando, o que as condenou ao fracasso." },
+          { question: "Qual foi a estratégia do Partido Comunista Português (PCP) durante o confronto militar de 25 de novembro?", options: ["Mobilizar as suas milícias armadas para tomar o poder em Lisboa.", "Organizar a resistência civil no Norte do país, em aliança com Pires Veloso.", "Optar pela não-intervenção militar e desmobilizar as bases para evitar uma guerra civil e garantir a sua sobrevivência política.", "Adotar uma posição de neutralidade, aguardando o desfecho para se aliar ao vencedor."], correct: 2, instruction: "Pense se o PCP optou por um confronto militar de alto risco ou por uma tática de preservação a longo prazo.", expl: "O contacto de Costa Gomes com Cunhal e as ordens internas do partido para não se envolverem foram cruciais para isolar a sublevação militar e evitar uma escalada do conflito." },
+          { question: "Que figura internacional, Secretário de Estado dos EUA, expressou a intenção de invadir Portugal para evitar o surgimento de uma \"nova Cuba\" na Europa?", options: ["Henry Kissinger", "Leonid Brejnev", "Valéry Giscard D'Estaing", "James Callaghan"], correct: 0, instruction: "Esta figura da diplomacia americana era conhecida pela sua política de \"realpolitik\" e pela sua forte oposição ao comunismo durante a Guerra Fria.", expl: "Kissinger via a Revolução Portuguesa com grande alarme, temendo uma expansão do comunismo, e chegou a comunicar aos aliados europeus a intenção de uma intervenção militar." },
+          { question: "Os objetivos fundamentais do Movimento das Forças Armadas (MFA) resumiam-se nos chamados \"três D\". Quais eram eles?", options: ["Defesa, Doutrina e Disciplina.", "Derrubar, Destituir e Dominar.", "Direitos, Deveres e Decisão.", "Descolonizar, Desenvolver e Democratizar."], correct: 3, instruction: "Pense nos três grandes problemas que Portugal enfrentava em 1974: uma guerra no Ultramar, uma economia atrasada e um regime político não representativo.", expl: "Este lema resumia o programa político do MFA: acabar com a guerra colonial, modernizar a economia e instaurar um regime democrático." },
+          { question: "Qual foi a consequência política mais significativa da vitória dos moderados a 25 de Novembro, que definiu o futuro do regime em Portugal?", options: ["A instauração de uma ditadura militar liderada por Ramalho Eanes.", "A entrada imediata de Portugal na Comunidade Económica Europeia (CEE).", "O fim do Processo Revolucionário em Curso (PREC) e a criação de condições para a aprovação da Constituição de 1976.", "O regresso ao poder de figuras do antigo regime do Estado Novo."], correct: 2, instruction: "A data é vista como o ponto de viragem que pôs fim à fase revolucionária e abriu caminho para a normalização institucional do país.", expl: "A vitória dos moderados encerrou o período de instabilidade radical, permitindo a conclusão dos trabalhos da Assembleia Constituinte e a fundação da democracia representativa." },
+          { question: "Além da sublevação da esquerda radical, que outro tipo de ameaça à democracia portuguesa foi neutralizado com o desfecho do 25 de Novembro?", options: ["Uma intervenção militar espanhola para restaurar a monarquia.", "As ambições restauracionistas de movimentos clandestinos de extrema-direita como o MDLP e o ELP.", "O separatismo das regiões autónomas dos Açores e da Madeira.", "A influência da Igreja Católica para a criação de um Estado teocrático."], correct: 1, instruction: "O resultado final do 25 de Novembro foi a vitória de um centro político que se opunha a ambos os extremos.", expl: "A consolidação da democracia pluralista pelos moderados marginalizou não só a esquerda radical, mas também os grupos de direita que pretendiam um regresso a um regime autoritário." }
         ];
 
         // --- COMPONENTES UI ---
 
         const Button = ({ onClick, children, className = "", variant = "primary", disabled = false }) => {
-            const baseStyle = "font-bold font-slab py-3 px-6 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg";
+            const baseStyle = "font-bold font-slab py-3 px-6 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg flex items-center justify-center";
             const variants = {
                 primary: "bg-rev-red text-white hover:bg-red-800",
                 secondary: "bg-rev-gold text-rev-dark hover:bg-yellow-600",
@@ -537,7 +323,7 @@
         // --- FASES DA APLICAÇÃO ---
 
         const Intro = ({ onStart }) => (
-            <div className="flex flex-col items-center text-center animate-fade-in space-y-8 py-10">
+            <div className="flex flex-col items-center text-center animate-fade-in space-y-8 py-10 min-h-[80vh] justify-center">
                 <div className="bg-rev-red text-white w-24 h-24 rounded-full flex items-center justify-center shadow-2xl mb-4">
                     <span className="text-5xl">🛑</span>
                 </div>
@@ -565,79 +351,81 @@
             const prev = () => { if (index > 0) setIndex(index - 1); };
 
             return (
-                <Card className="max-w-4xl mx-auto bg-neutral-900">
-                    <div className="flex flex-col items-center text-center mb-8">
-                        <div className="p-4 bg-rev-stone/10 rounded-full mb-6">
-                            {content.icon}
+                <Card className="bg-neutral-900 h-full flex flex-col">
+                    <div className="flex-1">
+                        <div className="flex flex-col items-center text-center mb-8">
+                            <div className="p-4 bg-rev-stone/10 rounded-full mb-6">
+                                {content.icon}
+                            </div>
+                            <h2 className="text-3xl font-bold font-serif text-rev-gold mb-2">{content.title}</h2>
+                            <div className="h-1 w-20 bg-rev-red rounded-full"></div>
                         </div>
-                        <h2 className="text-3xl font-bold font-serif text-rev-gold mb-2">{content.title}</h2>
-                        <div className="h-1 w-20 bg-rev-red rounded-full"></div>
-                    </div>
-                    
-                    <div className="space-y-6 text-lg text-rev-stone leading-relaxed text-justify sm:text-left mb-8">
-                        {content.paragraphs.map((p, i) => (
-                            <p key={i} className="bg-white/5 p-4 rounded-lg border-l-4 border-rev-stone hover:border-rev-red transition-colors">
-                                {p}
-                            </p>
-                        ))}
-                    </div>
-
-                    <div className="space-y-8">
-                        {content.slides && (
-                            <SlideCarousel slides={content.slides} onZoom={onImageClick} />
-                        )}
-
-                        {content.image && (
-                            <div className="relative group cursor-zoom-in" onClick={() => onImageClick(content.image, content.imageAlt)}>
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
-                                    <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all" size={48} />
-                                </div>
-                                <img src={content.image} alt={content.imageAlt} className="w-full h-64 md:h-96 object-cover rounded-lg border-2 border-rev-stone/20" />
-                                <p className="text-xs text-center text-gray-500 mt-2 font-mono flex items-center justify-center gap-2">
-                                    <Maximize2 size={12}/> Clique para ampliar a infografia
+                        
+                        <div className="space-y-6 text-lg text-rev-stone leading-relaxed text-justify sm:text-left mb-8">
+                            {content.paragraphs.map((p, i) => (
+                                <p key={i} className="bg-white/5 p-4 rounded-lg border-l-4 border-rev-stone hover:border-rev-red transition-colors">
+                                    {p}
                                 </p>
-                            </div>
-                        )}
+                            ))}
+                        </div>
 
-                        {content.video && (
-                            <div className="bg-black/30 p-4 rounded-lg border border-white/10">
-                                <div className="flex items-center gap-2 text-rev-gold mb-2 font-bold uppercase tracking-wider text-sm">
-                                    <Video size={16}/> Documentário
-                                </div>
-                                <video controls className="w-full rounded bg-black aspect-video">
-                                    <source src={content.video} type="video/mp4" />
-                                    O seu navegador não suporta a reprodução de vídeo.
-                                </video>
-                            </div>
-                        )}
+                        <div className="space-y-8">
+                            {content.slides && (
+                                <SlideCarousel slides={content.slides} onZoom={onImageClick} />
+                            )}
 
-                        {content.audio && (
-                            <div className="bg-black/30 p-4 rounded-lg border border-white/10">
-                                <div className="flex items-center gap-2 text-rev-gold mb-2 font-bold uppercase tracking-wider text-sm">
-                                    <Headphones size={16}/> Podcast Explicativo
+                            {content.image && (
+                                <div className="relative group cursor-zoom-in" onClick={() => onImageClick(content.image, content.imageAlt)}>
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
+                                        <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all" size={48} />
+                                    </div>
+                                    <img src={content.image} alt={content.imageAlt} className="w-full h-64 md:h-96 object-cover rounded-lg border-2 border-rev-stone/20" />
+                                    <p className="text-xs text-center text-gray-500 mt-2 font-mono flex items-center justify-center gap-2">
+                                        <Maximize2 size={12}/> Clique para ampliar a infografia
+                                    </p>
                                 </div>
-                                <audio controls className="w-full h-10 mt-1">
-                                    <source src={content.audio} type="audio/mpeg" />
-                                    O seu navegador não suporta a reprodução de áudio.
-                                </audio>
-                            </div>
-                        )}
+                            )}
+
+                            {content.video && (
+                                <div className="bg-black/30 p-4 rounded-lg border border-white/10">
+                                    <div className="flex items-center gap-2 text-rev-gold mb-2 font-bold uppercase tracking-wider text-sm">
+                                        <Video size={16}/> Documentário
+                                    </div>
+                                    <video controls className="w-full rounded bg-black aspect-video">
+                                        <source src={content.video} type="video/mp4" />
+                                        O seu navegador não suporta a reprodução de vídeo.
+                                    </video>
+                                </div>
+                            )}
+
+                            {content.audio && (
+                                <div className="bg-black/30 p-4 rounded-lg border border-white/10">
+                                    <div className="flex items-center gap-2 text-rev-gold mb-2 font-bold uppercase tracking-wider text-sm">
+                                        <Headphones size={16}/> Podcast Explicativo
+                                    </div>
+                                    <audio controls className="w-full h-10 mt-1">
+                                        <source src={content.audio} type="audio/mpeg" />
+                                        O seu navegador não suporta a reprodução de áudio.
+                                    </audio>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex justify-between items-center mt-10 pt-6 border-t border-white/10">
                         <Button onClick={prev} variant="neutral" disabled={index === 0}>Anterior</Button>
                         <span className="text-sm text-gray-500 font-mono">Módulo {index + 1} / {LEARNING_CONTENT.length}</span>
-                        <Button onClick={next} variant="primary">{isLast ? 'Ver Cronologia' : 'Próximo'}</Button>
+                        <Button onClick={next} variant="primary">{isLast ? 'Seguinte: Cronologia' : 'Próximo'}</Button>
                     </div>
                 </Card>
             );
         };
 
         const Timeline = ({ onComplete }) => (
-            <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="animate-fade-in">
                 <h2 className="text-4xl font-bold font-serif text-center text-rev-gold mb-12">Cronologia da Crise</h2>
                 
-                <div className="relative border-l-4 border-rev-red/30 ml-4 md:ml-10 space-y-8 pb-12">
+                <div className="relative border-l-4 border-rev-red/30 ml-4 md:ml-10 space-y-8 pb-12 max-w-4xl mx-auto">
                     {TIMELINE_EVENTS.map((evt, i) => (
                         <div key={i} className="relative pl-8 md:pl-12 group">
                             <div className="absolute -left-[14px] top-0 w-6 h-6 rounded-full bg-rev-red border-4 border-rev-dark shadow-[0_0_10px_rgba(185,28,28,0.5)]"></div>
@@ -657,8 +445,8 @@
                     ))}
                 </div>
 
-                <div className="text-center mt-8">
-                    <Button onClick={onComplete} variant="secondary">Iniciar Flashcards</Button>
+                <div className="text-center mt-8 pb-12">
+                    <Button onClick={onComplete} variant="secondary">Seguinte: Flashcards <ChevronRight className="ml-2" /></Button>
                 </div>
             </div>
         );
@@ -689,7 +477,7 @@
             const flip = () => setIsFlipped(!isFlipped);
 
             return (
-                <div className="max-w-2xl mx-auto animate-fade-in text-center">
+                <div className="max-w-2xl mx-auto animate-fade-in text-center h-full flex flex-col justify-center">
                     <h2 className="text-3xl font-bold font-serif text-rev-gold mb-2">Flashcards de Revisão</h2>
                     <p className="text-gray-400 mb-8">Clique no cartão para ver a resposta.</p>
 
@@ -697,7 +485,7 @@
                         <div className={`relative w-full h-full duration-500 transform-style-3d transition-all ${isFlipped ? 'rotate-y-180' : ''}`}>
                             
                             {/* Frente */}
-                            <div className="absolute inset-0 w-full h-full bg-neutral-800 border-2 border-rev-stone/20 rounded-2xl p-8 flex flex-col items-center justify-center backface-hidden shadow-xl">
+                            <div className="absolute inset-0 w-full h-full bg-neutral-800 border-2 border-rev-stone/20 rounded-2xl p-8 flex flex-col items-center justify-center backface-hidden shadow-xl hover:border-rev-gold transition-colors">
                                 <div className="text-rev-gold font-bold uppercase tracking-widest text-sm mb-4">Questão {current + 1}</div>
                                 <h3 className="text-xl sm:text-2xl font-bold text-white leading-relaxed">{FLASHCARD_DATA[current].q}</h3>
                                 <div className="mt-8 text-xs text-gray-500 flex items-center gap-2">
@@ -713,13 +501,13 @@
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pb-8">
                         <Button onClick={prev} variant="neutral" disabled={current === 0}>
                             <ChevronLeft className="mr-2" size={20}/> Anterior
                         </Button>
                         <span className="font-mono text-gray-500">{current + 1} / {FLASHCARD_DATA.length}</span>
                         <Button onClick={next} variant="secondary">
-                            {current === FLASHCARD_DATA.length - 1 ? "Ir para Atividades" : "Próximo"} <ChevronRight className="ml-2" size={20}/>
+                            {current === FLASHCARD_DATA.length - 1 ? "Seguinte: Atividades" : "Próximo"} <ChevronRight className="ml-2" size={20}/>
                         </Button>
                     </div>
                 </div>
@@ -843,13 +631,10 @@
 
             const finish = () => {
                 let score = 0;
-                // 4 pontos por desafio de correspondência completo (4 * 4 = 16)
                 score += completedChallenges.length * 4;
-                // 1 ponto por V/F correto (4 * 1 = 4)
                 tfQuestions.forEach((q, i) => {
                     if (tfAnswers[i] === q.a) score += 1;
                 });
-                // Total possível Prática = 20
                 onComplete(score);
             };
 
@@ -902,7 +687,7 @@
 
                     <div className="text-center mt-12">
                         <Button onClick={finish} variant="primary" disabled={!allChallengesDone || !allTfAnswered}>
-                            Ir para o Debate
+                            Seguinte: Debate <ChevronRight className="ml-2" />
                         </Button>
                     </div>
                 </div>
@@ -918,7 +703,6 @@
             const handleSubmit = () => {
                 if(reflection.trim().length > 10) {
                     setSubmitted(true);
-                    // Passar a reflexão e a perspetiva para cima
                     onComplete(reflection, selectedPerspective);
                 }
             };
@@ -1295,97 +1079,157 @@
             );
         };
 
+        // --- COMPONENTE SIDEBAR ---
+        const Sidebar = ({ currentPhase, onNavigate, isOpen, onClose }) => {
+            const menuItems = [
+                { id: APP_SECTIONS.INTRO, label: 'Início', icon: <GraduationCap size={20} /> },
+                { id: APP_SECTIONS.LEARNING, label: 'Estudo & Multimédia', icon: <BookOpen size={20} /> },
+                { id: APP_SECTIONS.TIMELINE, label: 'Cronologia', icon: <Clock size={20} /> },
+                { id: APP_SECTIONS.FLASHCARDS, label: 'Flashcards', icon: <RotateCcw size={20} /> },
+                { id: APP_SECTIONS.FORMATIVE, label: 'Atividades Práticas', icon: <List size={20} /> },
+                { id: APP_SECTIONS.DEBATE, label: 'Debate', icon: <MessageSquare size={20} /> },
+                { id: APP_SECTIONS.QUIZ, label: 'Quiz Final', icon: <Award size={20} /> },
+            ];
+
+            return (
+                <>
+                    {/* Overlay para mobile */}
+                    {isOpen && (
+                        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose}></div>
+                    )}
+
+                    {/* Sidebar */}
+                    <div className={`fixed top-0 left-0 h-full w-64 bg-neutral-900 border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+                        <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                            <h1 className="text-xl font-bold text-rev-red font-serif">25 NOV 1975</h1>
+                            <button onClick={onClose} className="md:hidden text-gray-400 hover:text-white">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        
+                        <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-80px)]">
+                            {menuItems.map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => { onNavigate(item.id); onClose(); }}
+                                    className={`w-full flex items-center p-3 rounded-lg transition-all text-sm font-medium ${
+                                        currentPhase === item.id 
+                                            ? 'bg-rev-red text-white shadow-lg' 
+                                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    }`}
+                                >
+                                    <span className="mr-3">{item.icon}</span>
+                                    {item.label}
+                                </button>
+                            ))}
+                            
+                            {/* Indicador de Conclusão apenas se ativo */}
+                            {currentPhase === APP_SECTIONS.CONCLUSION && (
+                                <div className="mt-8 p-4 bg-rev-gold/10 rounded-lg border border-rev-gold/30">
+                                    <p className="text-rev-gold text-xs font-bold uppercase tracking-widest mb-1">Estado</p>
+                                    <p className="text-white text-sm">Certificado Disponível</p>
+                                </div>
+                            )}
+                        </nav>
+                    </div>
+                </>
+            );
+        };
+
         // --- APP PRINCIPAL ---
 
         function App() {
-            const [phase, setPhase] = useState(APP_PHASES.INTRO);
+            const [phase, setPhase] = useState(APP_SECTIONS.INTRO);
+            const [isSidebarOpen, setSidebarOpen] = useState(false);
             const [quizResults, setQuizResults] = useState({score:0, total:0, userAnswers:{}});
             const [practiceScore, setPracticeScore] = useState(0);
             const [debateData, setDebateData] = useState(null);
             const [zoomedImage, setZoomedImage] = useState(null);
 
-            // Navegação
-            const goLearning = () => setPhase(APP_PHASES.LEARNING);
-            const goTimeline = () => setPhase(APP_PHASES.TIMELINE);
-            const goFlashcards = () => setPhase(APP_PHASES.FLASHCARDS);
-            const goFormative = () => setPhase(APP_PHASES.FORMATIVE);
-            
+            // Navegação Direta
+            const navigateTo = (newPhase) => setPhase(newPhase);
+
+            // Callbacks de Conclusão de Módulos (para botões "Seguinte")
             const handleDebateComplete = (reflection, perspective) => {
                 setDebateData({ reflection, perspective });
-                setPhase(APP_PHASES.QUIZ);
+                setPhase(APP_SECTIONS.QUIZ);
             };
 
             const handlePracticeComplete = (score) => {
                 setPracticeScore(score);
-                setPhase(APP_PHASES.DEBATE);
+                setPhase(APP_SECTIONS.DEBATE);
             };
             
             const finishQuiz = (s, t, answers) => { 
                 setQuizResults({score:s, total:t, userAnswers: answers}); 
-                setPhase(APP_PHASES.CONCLUSION); 
+                setPhase(APP_SECTIONS.CONCLUSION); 
             };
             
             const restart = () => { 
                 setQuizResults({score:0, total:0, userAnswers:{}}); 
                 setPracticeScore(0);
                 setDebateData(null);
-                setPhase(APP_PHASES.INTRO); 
+                setPhase(APP_SECTIONS.INTRO); 
             };
 
-            // Modal Handlers
-            const openZoom = (src, alt) => setZoomedImage({src, alt});
-            const closeZoom = () => setZoomedImage(null);
+            // Renderização Condicional
+            const renderPhase = () => {
+                switch(phase) {
+                    case APP_SECTIONS.INTRO: return <Intro onStart={() => setPhase(APP_SECTIONS.LEARNING)} />;
+                    case APP_SECTIONS.LEARNING: return <LearningFlow onComplete={() => setPhase(APP_SECTIONS.TIMELINE)} onImageClick={(src, alt) => setZoomedImage({src, alt})} />;
+                    case APP_SECTIONS.TIMELINE: return <Timeline onComplete={() => setPhase(APP_SECTIONS.FLASHCARDS)} />;
+                    case APP_SECTIONS.FLASHCARDS: return <Flashcards onComplete={() => setPhase(APP_SECTIONS.FORMATIVE)} />;
+                    case APP_SECTIONS.FORMATIVE: return <FormativeActivities onComplete={handlePracticeComplete} />;
+                    case APP_SECTIONS.DEBATE: return <DebateActivity onComplete={handleDebateComplete} />;
+                    case APP_SECTIONS.QUIZ: return <Quiz onComplete={finishQuiz} />;
+                    case APP_SECTIONS.CONCLUSION: return <Conclusion 
+                        quizScore={quizResults.score} 
+                        quizTotal={quizResults.total} 
+                        userAnswers={quizResults.userAnswers}
+                        practiceScore={practiceScore}
+                        practiceTotal={20} 
+                        debateData={debateData}
+                        onRestart={restart} 
+                    />;
+                    default: return <Intro onStart={() => setPhase(APP_SECTIONS.LEARNING)} />;
+                }
+            };
 
             return (
-                <div className="min-h-screen flex flex-col">
-                    {/* Header Minimalista */}
-                    {phase !== APP_PHASES.INTRO && phase !== APP_PHASES.CONCLUSION && (
-                        <header className="bg-black/40 backdrop-blur-md border-b border-white/5 p-4 sticky top-0 z-50">
-                            <div className="max-w-6xl mx-auto flex justify-between items-center">
-                                <span className="font-bold text-rev-red tracking-wider">25 NOV 1975</span>
-                                <div className="text-xs text-gray-500 space-x-2 hidden sm:block">
-                                    {[APP_PHASES.LEARNING, APP_PHASES.TIMELINE, APP_PHASES.FLASHCARDS, APP_PHASES.FORMATIVE, APP_PHASES.DEBATE, APP_PHASES.QUIZ].map((p, i) => (
-                                        <span key={p} className={phase === p ? "text-rev-gold font-bold mx-1" : "opacity-30 mx-1"}>
-                                            0{i+1}
-                                        </span>
-                                    ))}
-                                </div>
-                                <div className="text-xs text-rev-gold font-bold sm:hidden">
-                                     Passo {
-                                         [APP_PHASES.LEARNING, APP_PHASES.TIMELINE, APP_PHASES.FLASHCARDS, APP_PHASES.FORMATIVE, APP_PHASES.DEBATE, APP_PHASES.QUIZ].indexOf(phase) + 1
-                                     }
-                                </div>
-                            </div>
+                <div className="min-h-screen bg-rev-dark text-rev-stone font-sans flex">
+                    {/* Sidebar Navigation */}
+                    <Sidebar 
+                        currentPhase={phase} 
+                        onNavigate={navigateTo} 
+                        isOpen={isSidebarOpen} 
+                        onClose={() => setSidebarOpen(false)} 
+                    />
+
+                    {/* Main Content Wrapper */}
+                    <div className="flex-1 flex flex-col md:pl-64 min-h-screen transition-all duration-300">
+                        
+                        {/* Mobile Header */}
+                        <header className="bg-neutral-900 border-b border-white/10 p-4 sticky top-0 z-30 flex justify-between items-center md:hidden">
+                            <span className="font-bold text-rev-red tracking-wider">25 NOV 1975</span>
+                            <button onClick={() => setSidebarOpen(true)} className="text-white p-2">
+                                <Menu />
+                            </button>
                         </header>
-                    )}
 
-                    <main className="flex-grow p-4 md:p-8 flex items-center justify-center">
-                        <div className="w-full max-w-6xl">
-                            {phase === APP_PHASES.INTRO && <Intro onStart={goLearning} />}
-                            {phase === APP_PHASES.LEARNING && <LearningFlow onComplete={goTimeline} onImageClick={openZoom} />}
-                            {phase === APP_PHASES.TIMELINE && <Timeline onComplete={goFlashcards} />}
-                            {phase === APP_PHASES.FLASHCARDS && <Flashcards onComplete={goFormative} />}
-                            {phase === APP_PHASES.FORMATIVE && <FormativeActivities onComplete={handlePracticeComplete} />}
-                            {phase === APP_PHASES.DEBATE && <DebateActivity onComplete={handleDebateComplete} />}
-                            {phase === APP_PHASES.QUIZ && <Quiz onComplete={finishQuiz} />}
-                            {phase === APP_PHASES.CONCLUSION && <Conclusion 
-                                quizScore={quizResults.score} 
-                                quizTotal={quizResults.total} 
-                                userAnswers={quizResults.userAnswers}
-                                practiceScore={practiceScore}
-                                practiceTotal={20} // 16 (Match) + 4 (VF)
-                                debateData={debateData}
-                                onRestart={restart} 
-                            />}
-                        </div>
-                    </main>
+                        {/* Conteúdo Principal */}
+                        <main className="flex-grow p-4 md:p-8 lg:p-12 flex items-center justify-center overflow-y-auto">
+                            <div className="w-full max-w-5xl mx-auto">
+                                {renderPhase()}
+                            </div>
+                        </main>
 
-                    <footer className="p-6 text-center text-xs text-gray-700 no-print">
-                        <p>Recurso Educativo Digital &copy; 2025</p>
-                    </footer>
+                        <footer className="p-6 text-center text-xs text-gray-600 no-print border-t border-white/5 bg-neutral-900/50">
+                            <p>Recurso Educativo Digital &copy; 2025</p>
+                        </footer>
+                    </div>
 
                     {/* Lightbox / Zoom Modal */}
-                    {zoomedImage && <ImageModal src={zoomedImage.src} alt={zoomedImage.alt} onClose={closeZoom} />}
+                    {zoomedImage && <ImageModal src={zoomedImage.src} alt={zoomedImage.alt} onClose={() => setZoomedImage(null)} />}
                 </div>
             );
         }
