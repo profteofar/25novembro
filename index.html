@@ -55,19 +55,25 @@
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
         
-        /* Estilos de Impressão */
+        /* Estilos de Impressão Otimizados */
         @media print {
             body * { visibility: hidden; }
-            #certificate-section, #certificate-section * { visibility: visible; }
-            #certificate-section {
-                position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-                display: flex; align-items: center; justify-content: center;
-                background-color: white !important; color: black !important; border: none !important;
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area {
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                background-color: white !important; 
+                color: black !important; 
+                border: none !important;
             }
+            .page-break { page-break-before: always; }
             .no-print { display: none !important; }
-            .bg-rev-red, .text-rev-gold {
-                color: black !important; background: transparent !important; border-color: black !important;
-            }
+            /* Forçar cores de fundo para impressão se o browser permitir */
+            .bg-rev-paper { background-color: #f5f5f4 !important; -webkit-print-color-adjust: exact; }
+            .text-rev-red { color: #b91c1c !important; }
+            .text-rev-gold { color: #d97706 !important; }
         }
     </style>
     
@@ -87,9 +93,9 @@
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useCallback, StrictMode } from 'react';
         import ReactDOM from 'react-dom/client';
-        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon, MessageSquare } from 'lucide-react';
+        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon, MessageSquare, FileText } from 'lucide-react';
 
-        // --- DADOS DO CONTEÚDO (ATUALIZADOS COM FONTES) ---
+        // --- DADOS DO CONTEÚDO ---
 
         const APP_PHASES = {
           INTRO: 'INTRO',
@@ -807,10 +813,13 @@
 
             const finish = () => {
                 let score = 0;
+                // 4 pontos por desafio de correspondência completo (4 * 4 = 16)
                 score += completedChallenges.length * 4;
+                // 1 ponto por V/F correto (4 * 1 = 4)
                 tfQuestions.forEach((q, i) => {
                     if (tfAnswers[i] === q.a) score += 1;
                 });
+                // Total possível Prática = 20
                 onComplete(score);
             };
 
@@ -872,13 +881,15 @@
 
         // --- NOVO MÓDULO DE DEBATE ---
         const DebateActivity = ({ onComplete }) => {
-            const [selectedPerspective, setSelectedPerspective] = useState(null); // 'coup' or 'counter'
+            const [selectedPerspective, setSelectedPerspective] = useState(null); 
             const [reflection, setReflection] = useState("");
             const [submitted, setSubmitted] = useState(false);
 
             const handleSubmit = () => {
                 if(reflection.trim().length > 10) {
                     setSubmitted(true);
+                    // Passar a reflexão e a perspetiva para cima
+                    onComplete(reflection, selectedPerspective);
                 }
             };
 
@@ -892,7 +903,7 @@
                     <div className="grid md:grid-cols-2 gap-8 mb-12">
                         {/* Tese A */}
                         <div 
-                            onClick={() => setSelectedPerspective('counter')}
+                            onClick={() => !submitted && setSelectedPerspective('counter')}
                             className={`cursor-pointer p-6 rounded-xl border-2 transition-all ${
                                 selectedPerspective === 'counter' ? 'bg-blue-900/30 border-blue-500' : 'bg-neutral-900 border-white/10 hover:border-blue-500/50'
                             }`}
@@ -910,7 +921,7 @@
 
                         {/* Tese B */}
                         <div 
-                            onClick={() => setSelectedPerspective('coup')}
+                            onClick={() => !submitted && setSelectedPerspective('coup')}
                             className={`cursor-pointer p-6 rounded-xl border-2 transition-all ${
                                 selectedPerspective === 'coup' ? 'bg-red-900/30 border-red-500' : 'bg-neutral-900 border-white/10 hover:border-red-500/50'
                             }`}
@@ -946,14 +957,11 @@
                             
                             {!submitted ? (
                                 <Button onClick={handleSubmit} variant="secondary" disabled={reflection.trim().length < 10}>
-                                    Submeter Argumento
+                                    Submeter e Continuar
                                 </Button>
                             ) : (
                                 <div className="text-center">
-                                    <p className="text-green-400 font-bold mb-4">Reflexão registada! Está pronto para o Quiz Final.</p>
-                                    <Button onClick={onComplete} variant="primary">
-                                        Avançar para o Quiz
-                                    </Button>
+                                    <p className="text-green-400 font-bold mb-4">Reflexão registada!</p>
                                 </div>
                             )}
                         </div>
@@ -1096,13 +1104,24 @@
             );
         };
 
-        const Conclusion = ({ quizScore, quizTotal, practiceScore, practiceTotal, userAnswers, onRestart }) => {
+        const Conclusion = ({ quizScore, quizTotal, practiceScore, practiceTotal, userAnswers, debateData, onRestart }) => {
             const [name, setName] = useState("");
             const [generated, setGenerated] = useState(false);
             const [reviewing, setReviewing] = useState(false);
             
-            const quizPct = Math.round((quizScore / quizTotal) * 100);
-            const practicePct = Math.round((practiceScore / practiceTotal) * 100);
+            // Cálculos Finais
+            const totalPoints = quizScore + practiceScore;
+            const maxPoints = quizTotal + practiceTotal;
+            const finalPercentage = Math.round((totalPoints / maxPoints) * 100);
+
+            // Escala Qualitativa
+            let qualitativeGrade = "";
+            let gradeColor = "";
+            if (finalPercentage <= 49) { qualitativeGrade = "Insuficiente"; gradeColor = "text-red-500"; }
+            else if (finalPercentage <= 69) { qualitativeGrade = "Suficiente"; gradeColor = "text-yellow-500"; }
+            else if (finalPercentage <= 89) { qualitativeGrade = "Bom"; gradeColor = "text-blue-400"; }
+            else if (finalPercentage <= 99) { qualitativeGrade = "Muito Bom"; gradeColor = "text-green-400"; }
+            else { qualitativeGrade = "Excelente"; gradeColor = "text-rev-gold"; }
 
             const generate = (e) => { e.preventDefault(); if(name.trim()) setGenerated(true); };
 
@@ -1114,26 +1133,28 @@
                 return (
                     <Card className="max-w-2xl mx-auto text-center">
                         <Award size={64} className="mx-auto text-rev-gold mb-4" />
-                        <h2 className="text-4xl font-black text-white mb-2">Parabéns!</h2>
-                        <p className="text-xl text-gray-300 mb-8">Você completou a sequência didática.</p>
+                        <h2 className="text-4xl font-black text-white mb-2">Percurso Concluído!</h2>
+                        <p className="text-xl text-gray-300 mb-8">A sua avaliação final está pronta.</p>
                         
-                        <div className="grid grid-cols-2 gap-4 mb-8">
-                            <div className="bg-neutral-800 p-4 rounded-lg">
-                                <p className="text-xs text-gray-400 uppercase">Atividades Práticas</p>
-                                <p className="text-3xl font-bold text-rev-gold">{practiceScore} <span className="text-sm text-gray-500">/ {practiceTotal}</span></p>
+                        <div className="bg-neutral-800 p-6 rounded-xl border border-white/5 mb-8">
+                            <p className="text-sm text-gray-400 uppercase tracking-widest mb-2">Classificação Global</p>
+                            <p className={`text-5xl font-black ${gradeColor} mb-2`}>{finalPercentage}%</p>
+                            <p className={`text-xl font-serif ${gradeColor}`}>{qualitativeGrade}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-8 text-sm">
+                            <div className="bg-neutral-900 p-3 rounded border border-white/5">
+                                <span className="text-gray-500 block">Prática (Esforço)</span>
+                                <span className="text-white font-bold">{practiceScore} / {practiceTotal}</span>
                             </div>
-                            <div className="bg-neutral-800 p-4 rounded-lg">
-                                <p className="text-xs text-gray-400 uppercase">Quiz Final</p>
-                                <p className="text-3xl font-bold text-rev-gold">{quizScore} <span className="text-sm text-gray-500">/ {quizTotal}</span></p>
+                            <div className="bg-neutral-900 p-3 rounded border border-white/5">
+                                <span className="text-gray-500 block">Quiz (Conhecimento)</span>
+                                <span className="text-white font-bold">{quizScore} / {quizTotal}</span>
                             </div>
                         </div>
 
                         <div className="flex flex-col gap-4">
-                            <Button onClick={() => setReviewing(true)} variant="outline" className="flex items-center justify-center gap-2">
-                                <List size={20} /> Rever Respostas do Quiz
-                            </Button>
-
-                            <form onSubmit={generate} className="bg-neutral-800 p-6 rounded-xl border border-white/5 mt-4">
+                            <form onSubmit={generate} className="bg-neutral-800 p-6 rounded-xl border border-white/5">
                                 <label className="block text-left text-sm text-gray-400 mb-2">Nome do Aluno (para Certificado):</label>
                                 <input 
                                     type="text" 
@@ -1156,59 +1177,87 @@
 
             return (
                 <div className="animate-fade-in">
-                    <div id="certificate-section" className="bg-rev-paper text-black p-12 rounded-xl shadow-2xl max-w-4xl mx-auto text-center border-[20px] border-double border-rev-gold relative">
-                        <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-                            <Shield size={400} />
-                        </div>
-
-                        <div className="relative z-10">
-                            <div className="flex justify-center mb-6 text-rev-red">
-                                <Award size={80} strokeWidth={1.5} />
-                            </div>
-                            <h1 className="text-5xl font-serif font-black uppercase tracking-widest text-rev-dark mb-2">Certificado</h1>
-                            <h2 className="text-xl font-sans uppercase tracking-widest text-rev-gold mb-12">de Conclusão</h2>
-
-                            <p className="text-xl font-serif italic text-gray-600 mb-4">Certifica-se que</p>
-                            <div className="text-4xl font-bold text-rev-dark border-b-2 border-rev-dark inline-block px-12 pb-2 mb-8 font-serif">
-                                {name}
-                            </div>
-                            
-                            <p className="text-xl text-gray-700 mb-2">completou com sucesso a sequência didática sobre</p>
-                            <h3 className="text-3xl font-bold text-rev-red font-slab mb-12">A Crise de 25 de Novembro de 1975</h3>
-
-                            <div className="grid grid-cols-2 gap-8 max-w-2xl mx-auto border-t border-b border-gray-300 py-6 mb-12">
-                                <div>
-                                    <div className="text-sm text-gray-500 uppercase tracking-wider">Prática Formativa</div>
-                                    <div className="text-3xl font-bold text-rev-dark">{practiceScore} <span className="text-lg font-normal text-gray-500">/ {practiceTotal}</span></div>
-                                    <div className="text-sm font-bold text-rev-gold">{practicePct}%</div>
-                                </div>
-                                <div>
-                                    <div className="text-sm text-gray-500 uppercase tracking-wider">Quiz Sumativo</div>
-                                    <div className="text-3xl font-bold text-rev-dark">{quizScore} <span className="text-lg font-normal text-gray-500">/ {quizTotal}</span></div>
-                                    <div className="text-sm font-bold text-rev-gold">{quizPct}%</div>
-                                </div>
+                    <div id="printable-area">
+                        {/* Página 1: Certificado */}
+                        <div className="bg-rev-paper text-black p-12 rounded-xl shadow-2xl max-w-4xl mx-auto text-center border-[20px] border-double border-rev-gold relative mb-8 page-break">
+                            <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                                <Shield size={400} />
                             </div>
 
-                            <div className="flex justify-between items-end px-12">
-                                <div className="text-left">
-                                    <div className="text-xl font-bold text-rev-dark mb-1">{new Date().toLocaleDateString('pt-PT')}</div>
-                                    <div className="text-xs text-gray-500 uppercase tracking-wider">Data de Emissão</div>
+                            <div className="relative z-10">
+                                <div className="flex justify-center mb-6 text-rev-red">
+                                    <Award size={80} strokeWidth={1.5} />
                                 </div>
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-rev-gold rounded-full flex items-center justify-center text-white font-bold text-xs mx-auto mb-2 shadow-inner">
-                                        SELO<br/>DIGITAL
+                                <h1 className="text-5xl font-serif font-black uppercase tracking-widest text-rev-dark mb-2">Certificado</h1>
+                                <h2 className="text-xl font-sans uppercase tracking-widest text-rev-gold mb-12">de Aproveitamento</h2>
+
+                                <p className="text-xl font-serif italic text-gray-600 mb-4">Certifica-se que</p>
+                                <div className="text-4xl font-bold text-rev-dark border-b-2 border-rev-dark inline-block px-12 pb-2 mb-8 font-serif">
+                                    {name}
+                                </div>
+                                
+                                <p className="text-xl text-gray-700 mb-2">concluiu a sequência didática sobre</p>
+                                <h3 className="text-3xl font-bold text-rev-red font-slab mb-12">A Crise de 25 de Novembro de 1975</h3>
+
+                                <div className="bg-gray-100 p-6 rounded-lg border border-gray-300 mb-12 max-w-lg mx-auto">
+                                    <div className="text-sm text-gray-500 uppercase tracking-wider mb-2">Avaliação Final</div>
+                                    <div className="text-5xl font-black text-rev-dark mb-2">{finalPercentage}%</div>
+                                    <div className="text-2xl font-serif text-rev-gold font-bold">{qualitativeGrade}</div>
+                                    <div className="mt-4 pt-4 border-t border-gray-300 flex justify-between text-sm text-gray-600">
+                                        <span>Prática: {practiceScore}/{practiceTotal}</span>
+                                        <span>Quiz: {quizScore}/{quizTotal}</span>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="w-40 border-b border-gray-400 mb-2"></div>
-                                    <div className="text-xs text-gray-500">Assinatura do Professor</div>
+
+                                <div className="flex justify-between items-end px-12">
+                                    <div className="text-left">
+                                        <div className="text-xl font-bold text-rev-dark mb-1">{new Date().toLocaleDateString('pt-PT')}</div>
+                                        <div className="text-xs text-gray-500 uppercase tracking-wider">Data de Emissão</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 bg-rev-gold rounded-full flex items-center justify-center text-white font-bold text-xs mx-auto mb-2 shadow-inner">
+                                            SELO<br/>DIGITAL
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="w-40 border-b border-gray-400 mb-2"></div>
+                                        <div className="text-xs text-gray-500">Assinatura do Professor</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Página 2: Anexo Debate (Se existir) */}
+                        {debateData && (
+                            <div className="bg-white text-black p-12 rounded-xl shadow-xl max-w-4xl mx-auto border border-gray-200 relative mt-8">
+                                <div className="border-b-2 border-rev-gold pb-4 mb-8 flex justify-between items-center">
+                                    <h2 className="text-2xl font-bold font-serif text-rev-dark">Anexo: Reflexão do Debate</h2>
+                                    <span className="text-sm text-gray-500">Portefólio do Aluno</span>
+                                </div>
+                                
+                                <div className="mb-8">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Perspetiva Escolhida</h3>
+                                    <div className="inline-block bg-gray-100 px-4 py-2 rounded-lg font-bold text-rev-dark border border-gray-300">
+                                        {debateData.perspective === 'counter' ? 'O Contragolpe Necessário' : 'O Golpe Contrarrevolucionário'}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Argumentação e Defesa</h3>
+                                    <div className="bg-gray-50 p-8 rounded-lg border border-gray-200 italic text-lg leading-relaxed text-gray-800 font-serif">
+                                        "{debateData.reflection}"
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-12 text-center text-xs text-gray-400">
+                                    Este documento é parte integrante da avaliação da sequência didática.
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="text-center mt-8 space-x-4 no-print flex justify-center">
-                        <Button onClick={() => window.print()} variant="neutral">Imprimir / Salvar PDF</Button>
+                    <div className="text-center mt-8 space-x-4 no-print flex justify-center pb-12">
+                        <Button onClick={() => window.print()} variant="neutral">Imprimir Certificado e Debate</Button>
                         <Button onClick={() => setReviewing(true)} variant="outline">Rever Quiz</Button>
                         <Button onClick={onRestart} variant="secondary">Novo Início</Button>
                     </div>
@@ -1222,6 +1271,7 @@
             const [phase, setPhase] = useState(APP_PHASES.INTRO);
             const [quizResults, setQuizResults] = useState({score:0, total:0, userAnswers:{}});
             const [practiceScore, setPracticeScore] = useState(0);
+            const [debateData, setDebateData] = useState(null);
             const [zoomedImage, setZoomedImage] = useState(null);
 
             // Navegação
@@ -1229,11 +1279,16 @@
             const goTimeline = () => setPhase(APP_PHASES.TIMELINE);
             const goFlashcards = () => setPhase(APP_PHASES.FLASHCARDS);
             const goFormative = () => setPhase(APP_PHASES.FORMATIVE);
-            const goDebate = (score) => {
+            
+            const handleDebateComplete = (reflection, perspective) => {
+                setDebateData({ reflection, perspective });
+                setPhase(APP_PHASES.QUIZ);
+            };
+
+            const handlePracticeComplete = (score) => {
                 setPracticeScore(score);
                 setPhase(APP_PHASES.DEBATE);
             };
-            const goQuiz = () => setPhase(APP_PHASES.QUIZ);
             
             const finishQuiz = (s, t, answers) => { 
                 setQuizResults({score:s, total:t, userAnswers: answers}); 
@@ -1243,6 +1298,7 @@
             const restart = () => { 
                 setQuizResults({score:0, total:0, userAnswers:{}}); 
                 setPracticeScore(0);
+                setDebateData(null);
                 setPhase(APP_PHASES.INTRO); 
             };
 
@@ -1279,15 +1335,16 @@
                             {phase === APP_PHASES.LEARNING && <LearningFlow onComplete={goTimeline} onImageClick={openZoom} />}
                             {phase === APP_PHASES.TIMELINE && <Timeline onComplete={goFlashcards} />}
                             {phase === APP_PHASES.FLASHCARDS && <Flashcards onComplete={goFormative} />}
-                            {phase === APP_PHASES.FORMATIVE && <FormativeActivities onComplete={goDebate} />}
-                            {phase === APP_PHASES.DEBATE && <DebateActivity onComplete={goQuiz} />}
+                            {phase === APP_PHASES.FORMATIVE && <FormativeActivities onComplete={handlePracticeComplete} />}
+                            {phase === APP_PHASES.DEBATE && <DebateActivity onComplete={handleDebateComplete} />}
                             {phase === APP_PHASES.QUIZ && <Quiz onComplete={finishQuiz} />}
                             {phase === APP_PHASES.CONCLUSION && <Conclusion 
                                 quizScore={quizResults.score} 
                                 quizTotal={quizResults.total} 
                                 userAnswers={quizResults.userAnswers}
                                 practiceScore={practiceScore}
-                                practiceTotal={20}
+                                practiceTotal={20} // 16 (Match) + 4 (VF)
+                                debateData={debateData}
                                 onRestart={restart} 
                             />}
                         </div>
