@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portugal em Chamas: Jogo de Estratégia 25 de Novembro</title>
+<!-- Carregamento do Chart.js via CDN (necessita internet para o gráfico, o resto funciona offline) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --primary: #8b0000;
+    --secondary: #b22222;
+    --bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --text: #333;
+    --shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; color: var(--text); padding-bottom: 40px; }
+  
+  /* Header */
+  header { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: #fff; text-align: center; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+  header h1 { margin: 0; font-size: 28px; letter-spacing: 1px; }
+  header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+
+  /* Layout Principal */
+  #game { display: flex; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap; }
+  
+  /* Colunas */
+  #leftPanel, #map, #panel { background: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow); padding: 20px; display: flex; flex-direction: column; }
+  
+  #leftPanel { flex: 1; min-width: 250px; }
+  #map { flex: 2; min-width: 300px; }
+  #panel { flex: 1; min-width: 250px; }
+
+  h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 18px; }
+
+  /* Grid do Mapa */
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+  
+  .tile { 
+    position: relative; height: 100px; border-radius: 8px; background-color: #eee; 
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column; justify-content: flex-end; 
+    border: 3px solid #ccc; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; 
+    overflow: hidden;
+  }
+  .tile:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 10; }
+  
+  /* Overlay escuro na imagem para ler texto */
+  .tile::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); }
+
+  .tile-content { position: relative; z-index: 2; padding: 6px; color: white; width: 100%; box-sizing: border-box; }
+  .name { font-weight: bold; font-size: 13px; text-shadow: 1px 1px 2px black; }
+  .owner { font-size: 10px; background: rgba(255,255,255,0.9); color: #333; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 2px; font-weight: bold;}
+  
+  .flag { position: absolute; top: 5px; right: 5px; font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); opacity: 0; transition: opacity 0.3s; z-index: 3; }
+  .controlled .flag { opacity: 1; }
+
+  /* Cores das Facções (Bordas) */
+  .tile.controlled[data-faction="moderados"] { border-color: #2e8b57; }
+  .tile.controlled[data-faction="radicais"] { border-color: #b22222; }
+  .tile.controlled[data-faction="direita"] { border-color: #1e90ff; }
+
+  /* Status e Botões */
+  #status ul { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
+  #status li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 13px; }
+  
+  button { padding: 10px 16px; border: none; border-radius: 6px; background: var(--primary); color: #fff; font-weight: bold; cursor: pointer; transition: background 0.2s; width: 100%; margin-bottom: 8px; }
+  button:hover { background: #a63a3a; }
+  button.secondary { background: #666; }
+  button.secondary:hover { background: #555; }
+  button.info { background: #4682b4; }
+  button.info:hover { background: #315f85; }
+
+  #event { margin-top: 15px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px; padding: 12px; color: #856404; font-size: 14px; animation: fadeIn 0.5s; }
+
+  /* Painéis de Jogador */
+  .playerCard { border-radius: 8px; padding: 12px; margin-bottom: 12px; color: #fff; position: relative; transition: 0.3s; border: 3px solid transparent; }
+  .playerCard.active { transform: scale(1.02); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-color: #ffd700; }
+  
+  /* Estilo de Jogador Eliminado */
+  .playerCard.eliminated {
+      opacity: 0.6;
+      filter: grayscale(100%);
+      pointer-events: none;
+      border: 2px dashed #666;
+  }
+  .playerCard.eliminated::after {
+      content: "ELIMINADO";
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-10deg);
+      color: #b22222;
+      font-weight: 900;
+      font-size: 20px;
+      border: 4px solid #b22222;
+      padding: 5px 15px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      z-index: 5;
+  }
+
+  .playerCard h3 { margin: 0 0 8px; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .stat-item { background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+
+  /* Semáforo de Missões */
+  .mission-status { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 12px; font-size: 12px; }
+  .semaphore { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #fff; }
+  .sem-blue { background-color: #1e90ff; box-shadow: 0 0 5px #1e90ff; }
+  .sem-yellow { background-color: #ffd700; box-shadow: 0 0 5px #ffd700; }
+  .sem-green { background-color: #32cd32; box-shadow: 0 0 5px #32cd32; }
+
+  /* Setup Overlay */
+  #setup { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(5px); }
+  .setup-box { background: #fff; border-radius: 12px; max-width: 600px; width: 90%; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+  .row input, .row select { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+
+  /* Modals */
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-content { background: #fff; border-radius: 12px; padding: 25px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+  .modal-content img { width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; }
+  .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #666; }
+  
+  /* Ranking Styling */
+  #ranking-container { margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #e0e0e0; }
+  #ranking-list p { margin: 5px 0; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+
+  /* Victory Modal Específico */
+  #victoryModal .modal-content { max-width: 800px; padding: 0; overflow: hidden; border: 4px solid gold; box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); }
+  .victory-header { background: #333; color: white; padding: 20px; text-transform: uppercase; font-size: 24px; font-weight: bold; }
+  .victory-body { padding: 20px; }
+  .report-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .report-table th, .report-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+  .report-table th { background-color: #f2f2f2; }
+  
+  /* Confetti Animation */
+  .confetti { position: fixed; width: 10px; height: 10px; background-color: #f00; animation: fall linear forwards; z-index: 9999; }
+  @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+  /* Media Queries */
+  @media (max-width: 800px) {
+    #game { flex-direction: column; }
+    #leftPanel, #panel { order: 2; }
+    #map { order: 1; }
+  }
+
+  @media print {
+    body * { visibility: hidden; }
+    #panel, #panel * { visibility: visible; }
+    #panel { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+    button { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Portugal em Chamas</h1>
+  <p>Simulação Estratégica do 25 de Novembro de 1975</p>
+</header>
+
+<!-- SETUP INICIAL -->
+<div id="setup">
+  <div class="setup-box">
+    <h2 style="text-align:center">Configuração da Operação</h2>
+    <p>Bem-vindo, Comandante. Defina os intervenientes neste conflito histórico. O jogo suporta 1 a 3 jogadores locais.</p>
+    
+    <div class="row">
+      <label style="align-self:center; font-weight:bold;">Nº de jogadores:</label>
+      <select id="numPlayers" onchange="buildPlayerForm()">
+        <option value="">Selecionar...</option>
+        <option value="1">1 Jogador (Solo)</option>
+        <option value="2">2 Jogadores</option>
+        <option value="3">3 Jogadores</option>
+      </select>
+    </div>
+    
+    <div id="playersForm"></div>
+    
+    <div class="row" style="justify-content:center; margin-top:20px">
+      <button onclick="startGame()" style="font-size: 16px; padding: 12px 24px;">Iniciar Simulação</button>
+    </div>
+    <div id="setupError" style="color:#b22222; font-weight:bold; text-align:center; min-height:20px"></div>
+
+    <!-- Tabela de Honra (Persistente) -->
+    <div id="ranking-container">
+      <h3>🏆 Histórico de Comandantes (Top 5)</h3>
+      <div id="ranking-list">Nenhum registo ainda.</div>
+      <button class="secondary" onclick="clearRanking()" style="margin-top:10px; font-size:11px; width:auto;">Limpar Histórico</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOGO -->
+<div id="game">
+  <!-- Esquerda: Jogadores -->
+  <div id="leftPanel">
+    <h2>Frentes de Combate</h2>
+    <div id="playerPanels"></div>
+  </div>
+
+  <!-- Centro: Mapa -->
+  <div id="map">
+    <h2>Mapa Estratégico</h2>
+    <div style="font-size:12px; color:#666; margin-bottom:10px">
+      Clique numa região para tentar a sua conquista. Custo de erro: Influência e Militar.
+    </div>
+    <div id="grid"></div>
+  </div>
+
+  <!-- Direita: Informação -->
+  <div id="panel">
+    <h2>Estado Maior</h2>
+    <div style="background:#f8f9fa; padding:10px; border-radius:6px; margin-bottom:10px; border-left: 4px solid var(--primary);">
+        <div><strong>Comandante Atual:</strong> <span id="currentPlayer" style="font-weight:bold; color:var(--primary)">-</span></div>
+        <div style="margin-top:5px"><strong>Objetivo:</strong> <span id="mission" style="font-style:italic">-</span></div>
+        <div style="margin-top:5px"><strong>Turno:</strong> <span id="turn">0</span> / <span id="maxTurns">10</span></div>
+    </div>
+
+    <!-- Botão de Regras -->
+    <button onclick="showRules()" class="info" style="margin-bottom:15px">📜 Ver Regras / Objetivos</button>
+
+    <!-- Gráfico -->
+    <div id="chart-container" style="position: relative; height:200px; width:100%">
+        <canvas id="scoreChart"></canvas>
+    </div>
+
+    <!-- Notificações -->
+    <div id="event">A aguardar ordens...</div>
+    
+    <!-- Pergunta Ativa -->
+    <div id="question-area" style="margin-top:15px"></div>
+
+    <div style="margin-top: auto; padding-top: 20px;">
+        <button onclick="exportCSV()">💾 Exportar Dados (CSV)</button>
+        <button onclick="window.print()" class="secondary">🖨️ Imprimir Relatório</button>
+        <button onclick="resetGame()" class="secondary" style="background:#333">❌ Reiniciar Jogo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE IMAGEM / AÇÃO -->
+<div id="imgModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle">Nome da Região</h3>
+        <img id="modalImg" src="" alt="Região" onerror="this.src='https://placehold.co/600x400?text=Imagem+N%C3%A3o+Encontrada'">
+        <p id="modalCaption" style="font-style: italic; color:#555"></p>
+        <div id="modalActions"></div>
+    </div>
+</div>
+
+<!-- MODAL DE REGRAS -->
+<div id="rulesModal" class="modal">
+    <div class="modal-content" style="text-align: left; max-width: 600px;">
+        <span class="close-btn" onclick="closeRules()">&times;</span>
+        <h3 style="text-align:center; color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px;">Regras de Combate</h3>
+        
+        <h4 style="color:#2e8b57; margin-bottom:5px;">🏆 Condições de Vitória</h4>
+        <ul style="margin-top:0;">
+            <li><strong>Vitória Total:</strong> Completar 3 missões. Cada missão exige o controlo simultâneo de 2 regiões.</li>
+            <li><strong>Sobrevivência:</strong> Se todos os rivais forem eliminados, vence automaticamente.</li>
+            <li><strong>Semáforo:</strong> 🔵 Longe (0) | 🟡 Médio (1) | 🟢 Perto (2)</li>
+        </ul>
+
+        <h4 style="color:#b22222; margin-bottom:5px;">💀 Condições de Derrota</h4>
+        <ul style="margin-top:0;">
+            <li><strong>Colapso:</strong> Se Influência E Militar chegarem a 0, a fação é ELIMINADA do jogo.</li>
+            <li><strong>Anulação:</strong> Se perder uma região que fazia parte de uma missão JÁ concluída, a missão é anulada e tem de ser refeita.</li>
+        </ul>
+
+        <div style="text-align:center; margin-top:20px;">
+            <button onclick="closeRules()" style="width:auto;">Entendido, Comandante</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE VITÓRIA (POMPA E CIRCUNSTÂNCIA) -->
+<div id="victoryModal" class="modal" style="display:none; z-index: 3000;">
+    <div class="modal-content" style="padding:0; border: none; background: transparent;">
+        <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+            <div id="victoryHeader" class="victory-header">
+                🏆 Fim das Hostilidades
+            </div>
+            <div class="victory-body">
+                <h2 id="victoryTitle" style="text-align: center; color: #333; border: none;">Vitória!</h2>
+                <p id="victoryReason" style="text-align: center; font-style: italic; margin-bottom: 20px;"></p>
+                
+                <h4 style="margin-bottom: 10px;">Relatório Final de Operações</h4>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Comandante</th>
+                            <th>Facção</th>
+                            <th>Status</th>
+                            <th>Pontos</th>
+                            <th>Infl / Mil</th>
+                        </tr>
+                    </thead>
+                    <tbody id="victoryTableBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button onclick="exportCSV()">💾 Guardar Registo</button>
+                    <button onclick="resetGame()" style="background: #333;">🔄 Nova Simulação</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Som (Efeito sonoro simples) -->
+<audio id="sound-success" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+<audio id="sound-fail" src="https://actions.google.com/sounds/v1/cartoon/clank_car_crash.ogg"></audio>
+<audio id="sound-win" src="https://actions.google.com/sounds/v1/cartoon/harp_strum.ogg"></audio>
+
+<script>
+// ======= Configuração e Dados =======
+const factionColors = {
+    moderados: '#2e8b57', // SeaGreen
+    radicais: '#b22222',  // FireBrick
+    direita: '#1e90ff'    // DodgerBlue
+};
+
+// Mapeamento correto das imagens conforme pedido (image1 a image12)
+const regions = [
+ {id:'Lisboa', tip:'Centro do poder político', img:'./image1.jpg', diff:2},
+ {id:'RTP', tip:'Emissora ocupada', img:'./image2.jpg', diff:2},
+ {id:'Monsanto', tip:'Estado-Maior da Força Aérea', img:'./image3.jpg', diff:2},
+ {id:'Tancos', tip:'Base dos Paraquedistas', img:'./image4.jpg', diff:2},
+ {id:'Montijo', tip:'Base Aérea sublevada', img:'./image5.jpg', diff:2},
+ {id:'Porto', tip:'Bastião a Norte', img:'./image6.jpg', diff:2},
+ {id:'Belém', tip:'Conselho da Revolução', img:'./image7.jpg', diff:1},
+ {id:'Algarve', tip:'Zona turística e estratégica', img:'./image8.jpg', diff:1},
+ {id:'Beja', tip:'Reforma Agrária no terreno', img:'./image9.jpg', diff:1},
+ {id:'Évora', tip:'Coração do Alentejo', img:'./image10.jpg', diff:1},
+ {id:'Braga', tip:'A cidade dos Arcebispos', img:'./image11.jpg', diff:1},
+ {id:'Guimarães', tip:'Berço da Nação', img:'./image12.jpg', diff:1}
+];
+
+// LISTA EXPANDIDA DE 15 QUESTÕES (Baseada nos Documentos)
+const perguntas = [
+ {
+   q: 'Qual foi o evento específico que serviu de "gatilho" imediato para a sublevação dos paraquedistas na madrugada de 25 de Novembro?', 
+   op: ['A substituição de Otelo Saraiva de Carvalho por Vasco Lourenço no comando da RML.', 'A publicação do Documento dos Nove.', 'A ocupação da Rádio Renascença.', 'A demissão do Primeiro-Ministro Pinheiro de Azevedo.'], 
+   correta: 0
+ },
+ {
+   q: 'Quem foi o estratega operacional responsável pelo planeamento e execução da resposta militar do "Grupo dos Nove" (moderados)?', 
+   op: ['Vasco Lourenço', 'Jaime Neves', 'Ramalho Eanes', 'Melo Antunes'], 
+   correta: 2
+ },
+ {
+   q: 'Qual foi a medida institucional decisiva tomada pelo Presidente da República, Costa Gomes, na tarde de 25 de Novembro?', 
+   op: ['A declaração do Estado de Sítio na Região Militar de Lisboa.', 'A dissolução imediata do COPCON.', 'A ordem de prisão para Álvaro Cunhal.', 'A demissão de Vasco Gonçalves.'], 
+   correta: 0
+ },
+ {
+   q: 'Qual foi a postura estratégica adotada pelo Partido Comunista Português (PCP) durante o confronto militar?', 
+   op: ['Liderança total da insurreição armada.', 'Recuo tático e não intervenção.', 'Aliança formal com o PS para combater a direita.', 'Apelo à greve geral revolucionária.'], 
+   correta: 1
+ },
+ {
+   q: 'Que unidade militar, considerada a "última bolsa de resistência" dos radicais, foi forçada a render-se pelos Comandos de Jaime Neves na manhã de 26 de Novembro?', 
+   op: ['Regimento de Artilharia de Lisboa (RALIS)', 'Base Aérea de Tancos', 'Polícia Militar (PM)', 'Escola Prática de Cavalaria'], 
+   correta: 2
+ },
+ {
+   q: 'Segundo os documentos, qual era o plano de contingência do Partido Socialista (PS) caso a situação em Lisboa ficasse incontrolável?', 
+   op: ['Refúgio na Embaixada Americana.', 'Retirada para o Norte e formação de um governo rival no Porto.', 'Fuga para Espanha.', 'Formação de uma guerrilha no Alentejo.'], 
+   correta: 1
+ },
+ {
+   q: 'Como é descrito o papel de Otelo Saraiva de Carvalho durante as horas críticas da operação militar?', 
+   op: ['Liderou as tropas a partir do Forte de Copacabana.', 'Negociou diretamente a rendição com Eanes na Amadora.', 'Ficou incomunicável ou desaparecido, deixando a sublevação sem comando.', 'Coordenou a ocupação da RTP.'], 
+   correta: 2
+ },
+ {
+   q: 'Qual é a principal consequência política do 25 de Novembro para o Processo Revolucionário em Curso (PREC)?', 
+   op: ['O início da Guerra Colonial.', 'O fim do PREC e a consolidação da democracia representativa.', 'A instauração de uma ditadura militar de direita.', 'A proibição imediata do Partido Comunista.'], 
+   correta: 1
+ },
+ {
+   q: 'Que frase famosa proferiu o Primeiro-Ministro Pinheiro de Azevedo durante o cerco a São Bento, ilustrando o clima de tensão?', 
+   op: ['"O povo está com o MFA."', '"É só fumaça, o povo é sereno!"', '"Estou cansado de ser sequestrado."', '"A reacção não passará."'], 
+   correta: 1
+ },
+ {
+   q: 'Segundo o "Dossier Histórico", como é caracterizada a ação dos moderados no 25 de Novembro?', 
+   op: ['Um improviso total face aos acontecimentos.', 'Um contragolpe premeditado.', 'Uma revolução socialista.', 'Uma restauração da monarquia.'], 
+   correta: 1
+ },
+ // NOVAS 5 QUESTÕES ADICIONADAS
+ {
+   q: 'Que evento, ocorrido a 12 de Novembro, simbolizou a paralisia total do Estado e levou o governo a suspender funções?',
+   op: ['O cerco à Assembleia Constituinte por trabalhadores da construção civil.', 'A fuga de Mário Soares para o Porto.', 'A ocupação da RTP pelos paraquedistas.', 'O bombardeamento do RALIS.'],
+   correta: 0
+ },
+ {
+   q: 'Quem era conhecido como o "Vice-rei do Norte", protegendo a região onde os partidos moderados (PS, PPD, CDS) procuraram refúgio estratégico?',
+   op: ['Salgueiro Maia', 'Pires Veloso', 'Diniz de Almeida', 'Galvão de Melo'],
+   correta: 1
+ },
+ {
+   q: 'Que declaração crucial fez Melo Antunes na RTP a 26 de Novembro, definindo o futuro político do país?',
+   op: ['"A participação do PCP na construção do socialismo é indispensável."', '"O PREC continua com toda a força."', '"O Partido Comunista deve ser ilegalizado."', '"A partir de agora, o poder é dos militares."'],
+   correta: 0
+ },
+ {
+   q: 'Qual foi o destino imediato do COPCON (Comando Operacional do Continente) após a vitória dos moderados?',
+   op: ['Foi integrado no Estado-Maior General.', 'Foi transformado num partido político.', 'Foi dissolvido pelo Conselho da Revolução.', 'Manteve-se sob o comando de Otelo.'],
+   correta: 2
+ },
+ {
+   q: 'Que organização de extrema-direita foi responsável por centenas de atentados bombistas durante o "Verão Quente" de 1975?',
+   op: ['LUAR', 'Brigadas Revolucionárias', 'MDLP (Movimento Democrático de Libertação de Portugal)', 'ARA'],
+   correta: 2
+ }
+];
+
+const missionPool = [
+ {desc:'Controlar Média: RTP e Belém', req:['RTP','Belém']},
+ {desc:'Ponte Aérea: Tancos e Algarve', req:['Tancos','Algarve']},
+ {desc:'Eixo Sul: Lisboa e Beja', req:['Lisboa','Beja']},
+ {desc:'Frente Norte: Porto e Évora', req:['Porto','Évora']},
+ {desc:'Defesa Estratégica: Monsanto e Braga', req:['Monsanto','Braga']},
+ {desc:'Bastiões: Montijo e Guimarães', req:['Montijo','Guimarães']},
+ {desc:'Comunicação Total: RTP e Porto', req:['RTP','Porto']},
+ {desc:'Capital Segura: Lisboa e Monsanto', req:['Lisboa','Monsanto']},
+ {desc:'Força Aérea: Tancos e Montijo', req:['Tancos','Montijo']}
+];
+
+// Estado do Jogo
+let players = [];
+let playerFactions = {};
+let scores = {};
+let resources = {}; // {infl, mil, intl}
+let errorCounts = {};
+let playerMissionQueues = {};
+let playerMissionIndex = {};
+let control = {}; 
+let turno = 0;
+const maxTurnos = 10;
+let currentIndex = 0;
+let usedQuestionIdx = new Set();
+let chartInstance = null;
+let gameEnded = false; // Bloqueio de jogo
+let eliminatedPlayers = new Set(); // Jogadores eliminados
+
+// Inicializa controlo neutro
+regions.forEach(r => control[r.id] = null);
+
+// ======= Funções de Setup =======
+
+function buildPlayerForm(){
+  const n = parseInt(document.getElementById('numPlayers').value);
+  const form = document.getElementById('playersForm');
+  form.innerHTML = '';
+  
+  if(!n) return;
+
+  for(let i=0; i<n; i++){
+    form.innerHTML += `
+      <div class="row" style="background:#f9f9f9; padding:10px; border-radius:6px;">
+        <input id="pname_${i}" type="text" placeholder="Nome do Jogador ${i+1}" value="Comandante ${i+1}">
+        <select id="pfac_${i}" class="faction-select" onchange="updateFactionAvailability()">
+          <option value="">Escolher Facção...</option>
+          <option value="moderados">Moderados (Verde)</option>
+          <option value="radicais">Esq. Radical (Vermelho)</option>
+          <option value="direita">Direita (Azul)</option>
+        </select>
+      </div>`;
+  }
+}
+
+// NOVA FUNÇÃO: Garante unicidade das fações
+function updateFactionAvailability() {
+    const selects = document.querySelectorAll('.faction-select');
+    // Recolher valores selecionados atualmente (ignorando vazios)
+    const selectedValues = Array.from(selects).map(s => s.value).filter(v => v !== "");
+
+    selects.forEach(select => {
+        const myValue = select.value;
+        
+        Array.from(select.options).forEach(opt => {
+            if(opt.value === "") return; // Ignorar opção default
+            
+            // Limpa texto anterior de ocupado
+            opt.text = opt.text.replace(" ⛔", "");
+
+            // Se o valor está na lista de selecionados E não é o valor deste select
+            if(selectedValues.includes(opt.value) && opt.value !== myValue){
+                opt.disabled = true;
+                opt.text += " ⛔";
+            } else {
+                opt.disabled = false;
+            }
+        });
+    });
+}
+
+function startGame(){
+  const n = parseInt(document.getElementById('numPlayers').value);
+  const errorDiv = document.getElementById('setupError');
+  
+  if(!n || n < 1 || n > 3){ 
+      errorDiv.innerText = 'Por favor selecione o número de jogadores.'; 
+      return; 
+  }
+
+  players = []; 
+  playerFactions = {}; 
+  scores = {}; 
+  resources = {}; 
+  errorCounts = {}; 
+  playerMissionQueues = {}; 
+  playerMissionIndex = {};
+  eliminatedPlayers = new Set();
+  gameEnded = false;
+  
+  // Recolha de dados e Validação de Fações
+  const factionsUsed = new Set();
+  
+  for(let i=0; i<n; i++){
+    const nomeInput = document.getElementById('pname_'+i);
+    const facSelect = document.getElementById('pfac_'+i);
+    
+    const nome = nomeInput.value.trim() || `Jogador ${i+1}`;
+    const fac = facSelect.value;
+    
+    if(!fac){ 
+        errorDiv.innerText = `A facção do ${nome} é obrigatória.`; 
+        return; 
+    }
+
+    if(factionsUsed.has(fac)){
+        errorDiv.innerText = `Erro: A facção ${fac} já foi escolhida. Cada jogador deve ter uma facção diferente.`;
+        return;
+    }
+    factionsUsed.add(fac);
+    
+    players.push(nome);
+    playerFactions[nome] = fac;
+    scores[nome] = 0;
+    resources[nome] = { infl: 50, mil: 50, intl: 50 };
+    errorCounts[nome] = 0;
+  }
+
+  // Distribuição de missões
+  let pool = JSON.parse(JSON.stringify(missionPool)); // Deep copy simples
+  pool.sort(() => Math.random() - 0.5); // Shuffle
+  
+  let pIdx = 0;
+  players.forEach(nome => {
+      playerMissionQueues[nome] = [];
+      playerMissionIndex[nome] = 0;
+      // Dá 3 missões a cada um
+      for(let k=0; k<3; k++){
+          if(pIdx < pool.length) playerMissionQueues[nome].push(pool[pIdx++]);
+      }
+  });
+
+  // Ocultar setup e iniciar
+  document.getElementById('setup').style.display = 'none';
+  initGameUI();
+}
+
+function initGameUI(){
+    renderGrid();
+    updateUI();
+    updateChart();
+    // Opcional: mostrar regras no início
+    // showRules(); 
+}
+
+// ======= Lógica Principal =======
+
+function renderGrid(){
+    const g = document.getElementById('grid');
+    g.innerHTML = '';
+    
+    regions.forEach(r => {
+        const t = document.createElement('div');
+        t.className = 'tile';
+        t.id = 'tile-' + r.id;
+        // Define imagem de fundo
+        t.style.backgroundImage = `url('${r.img}')`;
+        
+        t.innerHTML = `
+            <div class="flag">🏳️</div>
+            <div class="tile-content">
+                <div class="name">${r.id}</div>
+                <div class="owner">Neutro</div>
+            </div>
+        `;
+        
+        t.onclick = () => showModal(r);
+        g.appendChild(t);
+    });
+}
+
+function nextQuestion(){
+    if(usedQuestionIdx.size >= perguntas.length) usedQuestionIdx.clear();
+    
+    let idx;
+    do {
+        idx = Math.floor(Math.random() * perguntas.length);
+    } while(usedQuestionIdx.has(idx));
+    
+    usedQuestionIdx.add(idx);
+    return perguntas[idx];
+}
+
+function showModal(region){
+    if(gameEnded) return; // Bloqueia se jogo acabou
+
+    const currentPlayer = players[currentIndex];
+    
+    // Verifica se já é dono
+    if(control[region.id] === currentPlayer){
+        toast("Já controlas esta região, Comandante.", "info");
+        return;
+    }
+    
+    const modal = document.getElementById('imgModal');
+    document.getElementById('modalTitle').innerText = region.id;
+    document.getElementById('modalImg').src = region.img;
+    document.getElementById('modalCaption').innerText = `${region.tip} • Nível de Dificuldade: ${region.diff}`;
+    
+    const actions = document.getElementById('modalActions');
+    
+    if(control[region.id] !== null && control[region.id] !== currentPlayer){
+        // Região inimiga (mais difícil poderia ser implementado, mas mantemos lógica original)
+        actions.innerHTML = `<button onclick="startChallenge('${region.id}', ${region.diff})">Disputar Região a ${control[region.id]}</button>`;
+    } else {
+        // Região neutra
+        actions.innerHTML = `<button onclick="startChallenge('${region.id}', ${region.diff})">Iniciar Ocupação</button>`;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function closeModal(){
+    document.getElementById('imgModal').style.display = 'none';
+    document.getElementById('question-area').innerHTML = ''; // Limpa perguntas pendentes se fechar
+}
+
+// Funções para o Modal de Regras
+function showRules(){
+    document.getElementById('rulesModal').style.display = 'flex';
+}
+
+function closeRules(){
+    document.getElementById('rulesModal').style.display = 'none';
+}
+
+function startChallenge(regionId, diff){
+    closeModal();
+    const qArea = document.getElementById('question-area');
+    qArea.innerHTML = `<h3>Conquistar ${regionId} (${diff} fases)</h3><div id="q-content"></div>`;
+    
+    askQuestion(regionId, 0, diff);
+}
+
+function askQuestion(regionId, currentStep, totalSteps){
+    const p = nextQuestion();
+    const div = document.getElementById('q-content');
+    
+    let html = `<p style="font-weight:bold; margin-bottom:10px">${p.q}</p>`;
+    
+    p.op.forEach((op, index) => {
+        html += `<button onclick="handleAnswer(${index}, ${p.correta}, '${regionId}', ${currentStep}, ${totalSteps})">${op}</button>`;
+    });
+    
+    div.innerHTML = html;
+}
+
+function handleAnswer(choice, correct, regionId, step, total){
+    const nome = players[currentIndex];
+    const soundSuccess = document.getElementById('sound-success');
+    const soundFail = document.getElementById('sound-fail');
+
+    if(choice === correct){
+        // Resposta Certa
+        if(soundSuccess) soundSuccess.play().catch(e=>{});
+        
+        if(step + 1 < total){
+            toast("Correto! Próxima fase...", "success");
+            askQuestion(regionId, step + 1, total);
+        } else {
+            // Conquista completa
+            conquerRegion(regionId, nome);
+            document.getElementById('question-area').innerHTML = '';
+            endTurn();
+        }
+    } else {
+        // Resposta Errada
+        if(soundFail) soundFail.play().catch(e=>{});
+        applyPenalty(nome);
+        document.getElementById('question-area').innerHTML = '';
+        endTurn(); // Se não for eliminado na penalidade, passa vez
+    }
+}
+
+function conquerRegion(regionId, nome){
+    control[regionId] = nome;
+    scores[nome] += 10;
+    errorCounts[nome] = 0; // Reset erros consecutivos
+    toast(`${nome} conquistou ${regionId}! (+10 pts)`, "success");
+    
+    // Atualiza visual
+    const tile = document.getElementById('tile-'+regionId);
+    tile.classList.add('controlled');
+    tile.dataset.faction = playerFactions[nome];
+    tile.querySelector('.owner').innerText = nome;
+    tile.querySelector('.owner').style.color = factionColors[playerFactions[nome]];
+    
+    // Animação CSS
+    tile.style.borderColor = factionColors[playerFactions[nome]];
+}
+
+function applyPenalty(nome){
+    errorCounts[nome]++;
+    
+    if(errorCounts[nome] === 1){
+        resources[nome].infl = Math.max(0, resources[nome].infl - 5);
+        resources[nome].mil = Math.max(0, resources[nome].mil - 5);
+        loseRandomRegion(nome, 1);
+        toast(`Erro! ${nome} perdeu recursos e 1 região.`, "warning");
+    } else {
+        resources[nome].infl = Math.floor(resources[nome].infl / 2);
+        resources[nome].mil = Math.floor(resources[nome].mil / 2);
+        loseRandomRegion(nome, 2);
+        toast(`CRÍTICO! 2º Erro seguido. ${nome} perde metade dos recursos e 2 regiões.`, "danger");
+    }
+    
+    // VERIFICAÇÃO DE ELIMINAÇÃO
+    if(resources[nome].infl <= 0 && resources[nome].mil <= 0){
+        if(!eliminatedPlayers.has(nome)){
+            eliminatedPlayers.add(nome);
+            toast(`COLAPSO DE COMANDO! ${nome} foi eliminado do conflito.`, "danger");
+            
+            // Verifica estado do jogo
+            const active = players.filter(p => !eliminatedPlayers.has(p));
+            
+            if(active.length === 0) {
+                 gameOver(`Derrota Total: ${nome} colapsou e não restam sobreviventes.`);
+            } else if (players.length > 1 && active.length === 1) {
+                 // Se era multiplayer e só sobra 1
+                 gameOver(`Vitória por Eliminação! O sobrevivente e vencedor é ${active[0]}!`);
+            } else {
+                // Jogo continua com os restantes
+                updateUI(); // Atualiza para mostrar cinzento
+                return; // O endTurn tratará de saltar este jogador
+            }
+        }
+    }
+}
+
+function loseRandomRegion(nome, qtd){
+    const myRegions = Object.keys(control).filter(k => control[k] === nome);
+    let lostSomething = false;
+
+    for(let i=0; i<qtd; i++){
+        if(myRegions.length === 0) break;
+        const randIdx = Math.floor(Math.random() * myRegions.length);
+        const lostId = myRegions.splice(randIdx, 1)[0];
+        
+        control[lostId] = null;
+        lostSomething = true;
+        
+        // Reset Visual
+        const tile = document.getElementById('tile-'+lostId);
+        tile.classList.remove('controlled');
+        tile.dataset.faction = '';
+        tile.style.borderColor = '#ccc';
+        tile.querySelector('.owner').innerText = 'Neutro';
+        tile.querySelector('.owner').style.color = '#333';
+    }
+
+    // Se perdeu regiões, verificar se isso anulou alguma missão já completa
+    if(lostSomething){
+        revalidateMissions(nome);
+    }
+}
+
+function revalidateMissions(nome){
+    const currentLevel = playerMissionIndex[nome];
+    const missions = playerMissionQueues[nome];
+    
+    for(let i = 0; i < currentLevel; i++){
+        const mission = missions[i];
+        const hasRequirements = mission.req.every(r => control[r] === nome);
+        
+        if(!hasRequirements){
+            playerMissionIndex[nome] = i;
+            toast(`⚠️ ATENÇÃO: A perda de território anulou a missão "${mission.desc}"! Terá de a repetir.`, "warning");
+            scores[nome] = Math.max(0, scores[nome] - 10);
+            return;
+        }
+    }
+}
+
+function checkMissions(nome){
+    if(eliminatedPlayers.has(nome)) return;
+
+    const q = playerMissionQueues[nome];
+    const idx = playerMissionIndex[nome];
+    
+    if(idx < q.length){
+        const mission = q[idx];
+        const allControlled = mission.req.every(r => control[r] === nome);
+        
+        if(allControlled){
+            playerMissionIndex[nome]++;
+            scores[nome] += 20; // Bónus de missão
+            toast(`MISSÃO CUMPRIDA! ${nome} completou: ${mission.desc}`, "success");
+            
+            // Verifica vitória total
+            if(playerMissionIndex[nome] >= q.length){
+                gameOver(`Vitória Estratégica Completa: ${nome}`);
+            }
+        }
+    }
+}
+
+function endTurn(){
+    if (gameEnded) return;
+
+    // Verificar missões do jogador atual antes de passar (se não foi eliminado agora)
+    if(!eliminatedPlayers.has(players[currentIndex])){
+        checkMissions(players[currentIndex]);
+    }
+    
+    updateChart();
+    
+    // Avançar turno global se voltarmos ao primeiro jogador
+    if(currentIndex === players.length - 1){
+        turno++;
+        if(turno > maxTurnos){
+            gameOver("Limite de 10 Turnos Atingido");
+            return;
+        }
+    }
+    
+    // ROTAÇÃO DE JOGADOR (Saltar Eliminados)
+    let loops = 0;
+    do {
+        currentIndex = (currentIndex + 1) % players.length;
+        loops++;
+    } while (eliminatedPlayers.has(players[currentIndex]) && loops <= players.length);
+
+    // Se depois do loop todos estiverem eliminados (safety check)
+    if(loops > players.length && players.length > 0){
+        gameOver("Todos os jogadores foram eliminados.");
+        return;
+    }
+    
+    updateUI();
+}
+
+// ======= UI Updates =======
+
+function updateUI(){
+    const pName = players[currentIndex];
+    
+    // Header Info
+    const pLabel = document.getElementById('currentPlayer');
+    if(eliminatedPlayers.has(pName)){
+        pLabel.innerText = "NENHUM (Todos Eliminados?)";
+        pLabel.style.color = "#000";
+    } else {
+        pLabel.innerText = pName;
+        pLabel.style.color = factionColors[playerFactions[pName]];
+    }
+    
+    document.getElementById('turn').innerText = turno;
+    
+    const qIdx = playerMissionIndex[pName];
+    const missions = playerMissionQueues[pName];
+    // Se o jogador estiver eliminado ou erro, fallback
+    const txt = (!eliminatedPlayers.has(pName) && missions && qIdx < missions.length) ? missions[qIdx].desc : (eliminatedPlayers.has(pName) ? "ELIMINADO" : "Todas as missões concluídas!");
+    document.getElementById('mission').innerText = txt;
+    
+    const container = document.getElementById('playerPanels');
+    container.innerHTML = '';
+    
+    players.forEach((p, idx) => {
+        const div = document.createElement('div');
+        const isEliminated = eliminatedPlayers.has(p);
+        
+        div.className = `playerCard ${idx === currentIndex ? 'active' : ''} ${isEliminated ? 'eliminated' : ''}`;
+        div.style.backgroundColor = factionColors[playerFactions[p]];
+        
+        const myRegions = Object.values(control).filter(c => c === p).length;
+        const missionsDone = playerMissionIndex[p];
+        
+        let semClass = 'sem-blue';
+        if(missionsDone === 1) semClass = 'sem-yellow';
+        if(missionsDone >= 2) semClass = 'sem-green';
+        
+        div.innerHTML = `
+            <h3>
+                ${p}
+                <div class="mission-status" title="Missões Cumpridas">
+                    Missões: ${missionsDone}/3
+                    <div class="semaphore ${semClass}"></div>
+                </div>
+            </h3>
+            <div class="stats-grid">
+                <div class="stat-item">Pontos: ${scores[p]}</div>
+                <div class="stat-item">Regiões: ${myRegions}</div>
+                <div class="stat-item">Influência: ${resources[p].infl}</div>
+                <div class="stat-item">Militar: ${resources[p].mil}</div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function toast(msg, type){
+    const ev = document.getElementById('event');
+    ev.innerHTML = msg;
+    ev.className = type;
+    
+    if(type === 'warning') ev.style.backgroundColor = '#fff3cd';
+    if(type === 'danger') ev.style.backgroundColor = '#f8d7da';
+    if(type === 'success') ev.style.backgroundColor = '#d4edda';
+    
+    ev.style.animation = 'none';
+    ev.offsetHeight; 
+    ev.style.animation = 'fadeIn 0.5s';
+}
+
+function updateChart(){
+    const ctx = document.getElementById('scoreChart').getContext('2d');
+    
+    const dataPoints = players.map(p => scores[p]);
+    const bgColors = players.map(p => factionColors[playerFactions[p]]);
+    
+    if(chartInstance){
+        chartInstance.data.datasets[0].data = dataPoints;
+        chartInstance.data.datasets[0].backgroundColor = bgColors;
+        chartInstance.update();
+    } else {
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: players,
+                datasets: [{
+                    label: 'Pontuação',
+                    data: dataPoints,
+                    backgroundColor: bgColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+}
+
+// ======= Fim de Jogo com Pompa e Circunstância =======
+
+function gameOver(reason){
+    if (gameEnded) return; // Evita múltiplas chamadas
+    gameEnded = true;
+
+    // Tocar som de harpa/vitória se possível
+    const snd = document.getElementById('sound-win');
+    if(snd) snd.play().catch(e => {});
+
+    // Determina vencedor
+    let winner = null;
+    let maxScore = -1;
+
+    // Se foi vitória por eliminação, o vencedor é o único ativo
+    const active = players.filter(p => !eliminatedPlayers.has(p));
+    if(active.length === 1){
+        winner = active[0];
+    } else {
+        // Caso contrário, quem tem mais pontos (mesmo que tenha sido eliminado? Normalmente não. Só os ativos ganham.)
+        // Se todos eliminados, maxScore mantem-se -1?
+        // Vamos assumir que apenas jogadores ativos podem ganhar, a menos que todos tenham morrido.
+        const candidates = active.length > 0 ? active : players;
+        
+        candidates.forEach(p => {
+            if(scores[p] > maxScore){
+                maxScore = scores[p];
+                winner = p;
+            }
+        });
+    }
+
+    const winnerFaction = playerFactions[winner];
+    const winnerColor = factionColors[winnerFaction] || '#333';
+
+    // Prepara o Modal
+    const modal = document.getElementById('victoryModal');
+    const header = document.getElementById('victoryHeader');
+    const title = document.getElementById('victoryTitle');
+    const reasonTxt = document.getElementById('victoryReason');
+    const tbody = document.getElementById('victoryTableBody');
+
+    // Estilização baseada no vencedor
+    header.style.backgroundColor = winnerColor;
+    title.innerHTML = `Vitória para ${winner}!`;
+    title.style.color = winnerColor;
+    reasonTxt.innerText = reason;
+
+    // Gerar Tabela de Relatório
+    // Criar array ordenado para a tabela
+    const ranking = players.map(p => ({
+        nome: p,
+        faccao: playerFactions[p],
+        status: eliminatedPlayers.has(p) ? "ELIMINADO" : "Ativo",
+        pontos: scores[p],
+        infl: resources[p].infl,
+        mil: resources[p].mil
+    })).sort((a,b) => {
+        // Ativos primeiro, depois pontos
+        if(a.status !== b.status){
+            return a.status === "Ativo" ? -1 : 1;
+        }
+        return b.pontos - a.pontos;
+    });
+
+    tbody.innerHTML = '';
+    ranking.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        if(r.nome === winner) tr.style.fontWeight = 'bold';
+        if(r.status === "ELIMINADO") tr.style.color = "#999";
+        
+        tr.innerHTML = `
+            <td>#${idx+1}</td>
+            <td>${r.nome}</td>
+            <td style="color:${factionColors[r.faccao]}">${r.faccao}</td>
+            <td>${r.status}</td>
+            <td>${r.pontos}</td>
+            <td>${r.infl} / ${r.mil}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Mostrar modal
+    modal.style.display = 'flex';
+
+    // Salvar no histórico
+    saveRanking();
+
+    // Iniciar Confetes
+    startConfetti();
+}
+
+function startConfetti() {
+    for (let i = 0; i < 100; i++) {
+        const confetto = document.createElement('div');
+        confetto.classList.add('confetti');
+        
+        // Randomizar propriedades
+        const bg = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f'][Math.floor(Math.random() * 6)];
+        confetto.style.backgroundColor = bg;
+        confetto.style.left = Math.random() * 100 + 'vw';
+        confetto.style.animationDuration = (Math.random() * 3 + 2) + 's'; // 2 a 5s
+        confetto.style.opacity = Math.random();
+        
+        document.body.appendChild(confetto);
+        
+        // Remove após a animação
+        setTimeout(() => {
+            confetto.remove();
+        }, 5000);
+    }
+}
+
+
+function saveRanking(){
+    const list = JSON.parse(localStorage.getItem('ranking_25nov') || '[]');
+    
+    players.forEach(p => {
+        list.push({
+            nome: p,
+            faccao: playerFactions[p],
+            pontos: scores[p],
+            data: new Date().toLocaleDateString()
+        });
+    });
+    
+    list.sort((a,b) => b.pontos - a.pontos);
+    const top5 = list.slice(0, 5);
+    
+    localStorage.setItem('ranking_25nov', JSON.stringify(top5));
+}
+
+function loadRanking(){
+    const list = JSON.parse(localStorage.getItem('ranking_25nov') || '[]');
+    const div = document.getElementById('ranking-list');
+    
+    if(list.length === 0){
+        div.innerHTML = '<p style="text-align:center; color:#777">Sem registos.</p>';
+        return;
+    }
+    
+    let html = '';
+    list.forEach((r, i) => {
+        html += `<p><strong>#${i+1} ${r.nome}</strong> (${r.faccao}) - ${r.pontos} pts <small style="float:right;color:#999">${r.data}</small></p>`;
+    });
+    div.innerHTML = html;
+}
+
+function clearRanking(){
+    if(confirm("Tem a certeza que quer apagar o histórico?")){
+        localStorage.removeItem('ranking_25nov');
+        loadRanking();
+    }
+}
+
+function resetGame(){
+    location.reload();
+}
+
+function exportCSV(){
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Rank,Jogador,Faccao,Pontos,Regioes,Influencia,Militar\n";
+    
+    // Recalcular ranking para exportar ordenado
+    const ranking = players.map(p => ({
+        nome: p,
+        faccao: playerFactions[p],
+        pontos: scores[p],
+        regioes: Object.values(control).filter(c => c === p).length,
+        infl: resources[p].infl,
+        mil: resources[p].mil
+    })).sort((a,b) => b.pontos - a.pontos);
+
+    ranking.forEach((r, i) => {
+        csvContent += `${i+1},${r.nome},${r.faccao},${r.pontos},${r.regioes},${r.infl},${r.mil}\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "relatorio_final_25nov.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Inicializa ranking ao carregar página
+window.onload = loadRanking;
+
+</script>
+</body>
+</html>

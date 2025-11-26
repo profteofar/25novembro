@@ -93,7 +93,7 @@
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useCallback, StrictMode } from 'react';
         import ReactDOM from 'react-dom/client';
-        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon, MessageSquare, FileText, GraduationCap } from 'lucide-react';
+        import { BookOpen, Clock, Users, HelpCircle, ChevronRight, ChevronLeft, Menu, X, CheckCircle, AlertCircle, Play, Award, Scale, Scroll, Shield, Gavel, Maximize2, Headphones, Video, Projector, Image as ImageIcon, RotateCcw, Eye, List, Copy, Repeat, Link as LinkIcon, MessageSquare, FileText, GraduationCap, Gamepad2 } from 'lucide-react';
 
         // --- DADOS DO CONTEÚDO ---
 
@@ -1123,6 +1123,17 @@
                                 </button>
                             ))}
                             
+                            {/* LINK EXTERNO ADICIONADO AQUI */}
+                            <a
+                                href="jogo_25nov.html"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full flex items-center p-3 rounded-lg transition-all text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white"
+                            >
+                                <span className="mr-3"><Gamepad2 size={20} /></span>
+                                Jogo
+                            </a>
+
                             {/* Indicador de Conclusão apenas se ativo */}
                             {currentPhase === APP_SECTIONS.CONCLUSION && (
                                 <div className="mt-8 p-4 bg-rev-gold/10 rounded-lg border border-rev-gold/30">
